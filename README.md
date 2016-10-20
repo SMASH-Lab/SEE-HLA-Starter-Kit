@@ -21,7 +21,7 @@ The SEE HLA Starter Kit is designed, developed, released and managed by the SEI 
 - Official website [link](https://smash-lab.github.io/SEE-HLA-Starter-Kit/);
 - The SEE HLA Starter Kit all-in-one package [link](https://drive.google.com/drive/folders/0B5VINCL02C8rQ0xZYmhaTjFfRGc?usp=sharing);
 - Documentation (API) [link](https://smash-lab.github.io/SEE-HLA-Starter-Kit/docs/index.html);
-- Technical documentations [link](https://smash-lab.github.io/SEE-HLA-Starter-Kit/document/SEE HLA Starter Kit-TechnicalReport-1.2.0.pdf);
+- Technical documentations [link](https://smash-lab.github.io/SEE-HLA-Starter-Kit/document/SEE_HLA_StarterKit_TechnicalReport_1.2.0.pdf);
 - Examples and video-tutorials: How to build a Federate from scratch in 30 minutes! [link](https://drive.google.com/open?id=0B6Txsul1iIJma3pITXE1M2hSOVk);
 
 ## **Working team**
