@@ -1,4 +1,4 @@
-# SEE-HLA-Starter-Kit
+# SEE HLA Starter Kit
 
 The development of a HLA Federation with its Federates is a quite complex task and there are few training resources for developers [1,2, 4]. The SEE HLA Starter Kit aims to ease the development of HLA federates in the context of the Simulation Exploration Experience (SEE) project by providing the following resources:
 
@@ -12,7 +12,7 @@ The SKF is released under the open source policy Lesser GNU Public License (LGPL
 	
 -  *Interoperability*, SKF is fully compliant with the IEEE 1516-2010 specifications; as a consequence, it is platform-independent and can interoperate with different HLA RTI implementations (e.g. PITCH, VT/MÄK, PoRTIco, CERTI);
 -  *Portability and Uniformity*, SKF provides a homogeneous set of APIs that are independent from the underlying HLA RTI and Java version. In this way, developers could decide the HLA RTI and the Java run-time environment at development-time;
--  *Usability*, the complexity of the features provided by the DKF framework are hidden behind an intuitive set of APIs.
+-  *Usability*, the complexity of the features provided by the SKF framework are hidden behind an intuitive set of APIs.
 
 The SEE HLA Starter Kit is designed, developed, released and managed by the SEI (Systems Engineering and Integration) team, operating in the System Modeling and Simulation Hub (SMASH) Lab of the Department of Informatics, Modeling, Electronics and Systems Engineering (DIMES), University of Calabria (Italy), working in cooperation with NASA JSC (Johnson Space Center), Houston (TX, USA).
 
