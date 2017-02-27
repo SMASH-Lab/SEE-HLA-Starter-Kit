@@ -44,11 +44,11 @@ import skf.model.parser.AbstractObjectModelParser;
 
 @SuppressWarnings("rawtypes")
 public class ObjectClassModelParser extends AbstractObjectModelParser {
-	
+
 	private static final Logger logger = LogManager.getLogger(ObjectClassModelParser.class);
-	
+
 	protected Class<? extends ObjectClass> objectClassModel = null;
-	
+
 	public ObjectClassModelParser(Class<? extends ObjectClass> objectClassModel) {
 		super();
 		this.objectClassModel = objectClassModel;
@@ -62,7 +62,7 @@ public class ObjectClassModelParser extends AbstractObjectModelParser {
 		fields = objectClassModel.getDeclaredFields();
 		Map<Class, Coder> tmpMapCoder = new HashMap<Class, Coder>();
 		Coder coderTmp = null;
-		
+
 		try {
 			for(Field f : fields){
 				if(f.isAnnotationPresent(Attribute.class)){
@@ -70,7 +70,7 @@ public class ObjectClassModelParser extends AbstractObjectModelParser {
 					if(coderTmp == null){
 						coderTmp = f.getAnnotation(Attribute.class).coder().newInstance();
 						tmpMapCoder.put(f.getAnnotation(Attribute.class).coder(), coderTmp);
-						}
+					}
 					matchingObjectCoderIsValid(f, coderTmp);
 					mapFieldCoder.put(f.getAnnotation(Attribute.class).name(), coderTmp);
 				}
@@ -87,18 +87,18 @@ public class ObjectClassModelParser extends AbstractObjectModelParser {
 
 	@SuppressWarnings("unchecked")
 	public Map<String, byte[]> encode(Object element) {
-		
+
 		if(element == null){
 			logger.error("The argument is null");
 			throw new IllegalArgumentException("The argument is null");
 		}
-		
+
 		logger.debug("Encoding: "+element.toString());
-		
+
 		PropertyDescriptor pd = null;
 		Object fieldValue = null;
 		Coder fieldCoder = null;
-		
+
 		try {
 			for(Field f : fields)
 				if(f.isAnnotationPresent(Attribute.class)){
@@ -129,7 +129,7 @@ public class ObjectClassModelParser extends AbstractObjectModelParser {
 			logger.error("Some arguments are null");
 			throw new IllegalArgumentException("Some arguments are null");
 		}
-		
+
 		PropertyDescriptor pd = null;
 		Coder<Object> fieldCoder = null;
 		byte[] currValue = null;
@@ -147,4 +147,5 @@ public class ObjectClassModelParser extends AbstractObjectModelParser {
 		}
 
 	}
+
 }

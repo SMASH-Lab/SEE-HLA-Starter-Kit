@@ -32,9 +32,10 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import siso.smackdown.FrameType;
-import siso.smackdown.ReferenceFrameObject;
+import siso.smackdown.frame.FrameType;
+import siso.smackdown.frame.ReferenceFrameObject;
 import skf.core.observer.Subject;
+import skf.exception.TimeOutException;
 import skf.exception.UpdateException;
 import skf.model.interaction.InteractionClassModel;
 import skf.model.interaction.InteractionClassModelManager;
@@ -100,6 +101,10 @@ public abstract class SEEAbstractFederateAmbassador extends NullFederateAmbassad
 
 	private Time time = null;
 
+	private Set<ObjectInstanceHandle> updateRequested = null;
+
+	private Set<ObjectClassHandle> waitElementDiscovery = null;
+
 	public SEEAbstractFederateAmbassador() {
 		this.subscribedReferenceFrame = new HashSet<FrameType>();
 		this.discoveredReferenceFrame = new HashMap<ObjectInstanceHandle, ReferenceFrameObject>();
@@ -107,6 +112,9 @@ public abstract class SEEAbstractFederateAmbassador extends NullFederateAmbassad
 
 		this.objectManager = new ObjectClassModelManager();
 		this.interactionManager = new InteractionClassModelManager();
+		this.updateRequested = new HashSet<ObjectInstanceHandle>();
+
+		this.waitElementDiscovery = new HashSet<ObjectClassHandle>();
 
 	}
 
@@ -141,7 +149,7 @@ public abstract class SEEAbstractFederateAmbassador extends NullFederateAmbassad
 	public void addReferenceFrameToSubcribedList(FrameType frametype) {
 		subscribedReferenceFrame.add(frametype);
 	}
-	
+
 	public boolean referenceFrameIsSubcribed(FrameType frametype) {
 		return subscribedReferenceFrame.contains(frametype);
 	}
@@ -192,6 +200,7 @@ public abstract class SEEAbstractFederateAmbassador extends NullFederateAmbassad
 		}
 		else if(objectManager.objectClassIsSubscribed(arg1)){
 			objectManager.addDiscoverObjectInstance(arg0, arg1, arg2);
+			waitElementDiscovery.remove(arg1);
 		}// else-if
 	}
 
@@ -233,7 +242,7 @@ public abstract class SEEAbstractFederateAmbassador extends NullFederateAmbassad
 		if(discoveredReferenceFrame.get(arg0) != null){
 			ReferenceFrameObject rfo = discoveredReferenceFrame.get(arg0);
 			rfo.updateAttributes(arg1);
-			if(subscribedReferenceFrame.contains(rfo.getReferenceFrame().getFrameType()))
+			if(subscribedReferenceFrame.contains(rfo.getReferenceFrame().getFrame()))
 				subject.notifyUpdate(rfo.getReferenceFrame());
 			return;
 		}
@@ -241,8 +250,10 @@ public abstract class SEEAbstractFederateAmbassador extends NullFederateAmbassad
 		if(objectManager.objectInstanceHandleIsSubscribed(arg0)){
 			try {
 				Object ris = objectManager.reflectAttributeValues(arg0, arg1);
-				if(ris != null)
+				if(ris != null){
+					updateRequested.remove(arg0);
 					this.subject.notifyUpdate(ris);
+				}
 			} catch (InstantiationException | IllegalAccessException e) {
 				e.printStackTrace();
 				logger.error("Error during the decoding operation of the Object with ObjectInstanceHandle="+arg0);
@@ -444,5 +455,41 @@ public abstract class SEEAbstractFederateAmbassador extends NullFederateAmbassad
 
 	public void unsubscribeInteractionClassModel(Class interactionClass) throws InteractionClassNotDefined, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError {
 		interactionManager.unsubscribe(interactionClass);
+	}
+
+	public ObjectClassModelManager getObjectManager() {
+		return objectManager;
+	}
+
+	@SuppressWarnings("unchecked")
+	public void waitForAttributeValueUpdate(Class objectClass) throws InterruptedException {
+
+		//get instanceHandle
+		String objectName = ((Class<ObjectClass>)objectClass).getAnnotation(ObjectClass.class).name();
+		ObjectClassModel ocm = objectManager.getSubscribedMap().get(objectName);
+		ObjectClassHandle objectClassHandle = ocm.getObjectClassHandle();
+
+
+		ObjectInstanceHandle instance_handle = objectManager.getObjectInstanceHandle(objectClassHandle);
+		updateRequested.add(instance_handle);
+
+		long finishTime = System.currentTimeMillis()+7000;
+		while(updateRequested.contains(instance_handle))
+			if(finishTime < System.currentTimeMillis())
+				throw new TimeOutException("Timeout waiting for update request of instance ["+objectName+"]");
+		
+	}
+
+	@SuppressWarnings("unchecked")
+	public void waitForElementDiscovery(Class objectClass) throws InterruptedException {
+
+		String name = ((Class<ObjectClass>)objectClass).getAnnotation(ObjectClass.class).name();
+		ObjectClassModel ocm = objectManager.getSubscribedMap().get(name);
+		ObjectClassHandle objectClassHandle = ocm.getObjectClassHandle();
+
+		waitElementDiscovery.add(objectClassHandle);
+
+		while(waitElementDiscovery.contains(objectClassHandle))
+			Thread.sleep(10);
 	}
 }

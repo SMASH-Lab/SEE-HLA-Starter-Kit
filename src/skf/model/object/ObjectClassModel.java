@@ -29,6 +29,7 @@ import java.util.Map.Entry;
 
 import hla.rti1516e.AttributeHandle;
 import hla.rti1516e.AttributeHandleSet;
+//import hla.rti1516e.AttributeHandleSet;
 import hla.rti1516e.AttributeHandleValueMap;
 import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.ObjectInstanceHandle;
@@ -63,6 +64,7 @@ public class ObjectClassModel {
 	private static Logger logger = LogManager.getLogger(ObjectClassModel.class);
 
 	private ObjectModelStatus status = ObjectModelStatus.UNKNOWN;
+	
 	private ObjectClassHandle  objectClassHandle = null;
 
 	private Map<String, AttributeHandle> mapFieldNameAttributeHandle = null;
@@ -71,6 +73,7 @@ public class ObjectClassModel {
 
 	private Map<Object, ObjectClassEntity> entityMap = null;
 	private Map<ObjectInstanceHandle, ObjectClassEntity> mapObjectInstanceHandleObjectClassEntity = null;
+	private Map<ObjectClassHandle, AttributeHandleSet> mapObjectClassHandleAttributeHandleSet = null;
 	
 	private ObjectClassModelParser parser = null;
 
@@ -83,6 +86,7 @@ public class ObjectClassModel {
 		
 		this.entityMap = new HashMap<Object, ObjectClassEntity>();
 		this.mapObjectInstanceHandleObjectClassEntity = new HashMap<ObjectInstanceHandle, ObjectClassEntity>();
+		this.mapObjectClassHandleAttributeHandleSet = new HashMap<ObjectClassHandle, AttributeHandleSet>();
 		initialize();
 	}
 
@@ -117,6 +121,7 @@ public class ObjectClassModel {
 			attributeSet.addAll(mapFieldNameAttributeHandle.values());
 
 			rti_ambassador.subscribeObjectClassAttributes(objectClassHandle, attributeSet);
+			mapObjectClassHandleAttributeHandleSet.put(objectClassHandle, attributeSet);
 			status = ObjectModelStatus.SUBSCRIBED;
 			
 		}
@@ -132,6 +137,7 @@ public class ObjectClassModel {
 		if(status == ObjectModelStatus.SUBSCRIBED){
 
 			rti_ambassador.unsubscribeObjectClass(this.objectClassHandle);
+			mapObjectClassHandleAttributeHandleSet.remove(objectClassHandle);
 			status = ObjectModelStatus.UNKNOWN;
 		}
 		else{
@@ -152,6 +158,7 @@ public class ObjectClassModel {
 				attributeSet.add(element);
 			
 			rti_ambassador.publishObjectClassAttributes(objectClassHandle, attributeSet);
+			mapObjectClassHandleAttributeHandleSet.put(objectClassHandle, attributeSet);
 						
 			status = ObjectModelStatus.PUBLISHED;
 		}
@@ -170,6 +177,7 @@ public class ObjectClassModel {
 			AttributeHandleSet attributeSet = rti_ambassador.getAttributeHandleSetFactory().create();
 			attributeSet.addAll(mapFieldNameAttributeHandle.values());
 			rti_ambassador.unpublishObjectClassAttributes(objectClassHandle, attributeSet);
+			mapObjectClassHandleAttributeHandleSet.remove(objectClassHandle);
 
 			status = ObjectModelStatus.UNKNOWN;
 		}
@@ -231,7 +239,8 @@ public class ObjectClassModel {
 			throw new IllegalStateException("Can't update the ' "+element+" ', because it is not subscribed !");
 		}
 	}
-
+	
+	
 	private ObjectInstanceHandle reserveObjectInstanceName(ObjectClassEntity entity) throws IllegalName, SaveInProgress, RestoreInProgress, 
 	FederateNotExecutionMember, NotConnected, RTIinternalError, 
 	ObjectInstanceNameInUse, ObjectInstanceNameNotReserved, 
@@ -266,6 +275,17 @@ public class ObjectClassModel {
 
 	public ObjectClassEntity getObjectClassEntity(ObjectInstanceHandle instanceHandle) {
 		return mapObjectInstanceHandleObjectClassEntity.get(instanceHandle);
+	}
+
+	public AttributeHandleSet getAttributeHandleSet(ObjectClassHandle objectClassHandle) {
+		return mapObjectClassHandleAttributeHandleSet.get(objectClassHandle);
+	}
+	
+	public ObjectInstanceHandle getObjectInstanceHandle(ObjectClassEntity entity){
+		for(Map.Entry<ObjectInstanceHandle, ObjectClassEntity> entry : mapObjectInstanceHandleObjectClassEntity.entrySet())
+			if(entry.getValue().equals(entry))
+				return entry.getKey();
+		return null;
 	}
 
 }

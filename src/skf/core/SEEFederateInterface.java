@@ -26,7 +26,7 @@ package skf.core;
 import java.net.MalformedURLException;
 import java.util.Observer;
 
-import siso.smackdown.FrameType;
+import siso.smackdown.frame.FrameType;
 import skf.config.Configuration;
 import skf.exception.PublishException;
 import skf.exception.SubscribeException;

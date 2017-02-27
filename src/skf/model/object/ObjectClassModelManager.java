@@ -46,9 +46,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.commons.collections4.BidiMap;
-import org.apache.commons.collections4.bidimap.DualHashBidiMap;
-
 import skf.exception.UpdateException;
 import skf.model.object.annotations.ObjectClass;
 
@@ -57,7 +54,7 @@ public class ObjectClassModelManager {
 
 	//maps for published element
 	private Map<String, ObjectClassModel> published = null;
-	private BidiMap<String, ObjectClassEntity> mapInstanceNameObjectClassEntity = null;
+	private Map<String, ObjectClassEntity> mapInstanceNameObjectClassEntity = null;
 
 	//maps for subscribed element
 	private Map<String, ObjectClassModel> subscribed = null;
@@ -66,7 +63,7 @@ public class ObjectClassModelManager {
 
 	public ObjectClassModelManager() {
 		this.published = new HashMap<String, ObjectClassModel>();
-		this.mapInstanceNameObjectClassEntity = new DualHashBidiMap<String, ObjectClassEntity>();
+		this.mapInstanceNameObjectClassEntity = new HashMap<String, ObjectClassEntity>();
 
 		this.subscribed = new HashMap<String, ObjectClassModel>();
 		this.mapHandleClassObjectClass = new HashMap<ObjectClassHandle, Class>();
@@ -157,7 +154,7 @@ public class ObjectClassModelManager {
 		ocm.updateSubscribedObject(entity, attributes);
 		return entity.getElement();
 	}
-
+	
 	public boolean objectClassIsSubscribed(ObjectClassHandle arg1) {
 		return this.mapHandleClassObjectClass.get(arg1) != null;
 	}
@@ -166,4 +163,10 @@ public class ObjectClassModelManager {
 		return this.objectInstanceHandleObjectClassHandle.get(arg0) != null;
 	}
 
+	public ObjectInstanceHandle getObjectInstanceHandle(ObjectClassHandle objectClassHandle) {
+		for(Entry<ObjectInstanceHandle, ObjectClassHandleEntity> entry : objectInstanceHandleObjectClassHandle.entrySet())
+			if(entry.getValue().getObjectClassHandle().equals(objectClassHandle))
+				return entry.getKey();
+		return null;
+	}
 }

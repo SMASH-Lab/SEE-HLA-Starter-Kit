@@ -21,40 +21,49 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library. 
 If not, see http://http://www.gnu.org/licenses/
 *****************************************************************/
-package siso.smackdown;
+package siso.smackdown.frame;
 
 
 public enum FrameType {
 	
-	SolarSystemBarycentricInertial(null),
+	SolarSystemBarycentricInertial("SolarSystemBarycentricInertial", null),
 	
-	SunCentricInertial("SolarSystemBarycentricInertial"),
+	SunCentricInertial("SunCentricInertial", "SolarSystemBarycentricInertial"),
 	
-	EarthMoonBarycentricInertial("SolarSystemBarycentricInertial"),
-	EarthMoonBarycentricRotating("EarthMoonBarycentricInertial"),
+	EarthMoonBarycentricInertial("EarthMoonBarycentricInertial", "SolarSystemBarycentricInertial"),
+	EarthMoonBarycentricRotating("EarthMoonBarycentricRotating", "EarthMoonBarycentricInertial"),
 	
-	EarthMoonL2Rotating("EarthMoonBarycentricInertial"),
+	EarthMoonL2Rotating("EarthMoonL2Rotating", "EarthMoonBarycentricInertial"),
 	
-	EarthCentricInertial("EarthMoonBarycentricInertial"),
-	EarthCentricFixed("EarthCentricInertial"),
+	EarthCentricInertial("EarthCentricInertial", "EarthMoonBarycentricInertial"),
+	EarthCentricFixed("EarthCentricFixed", "EarthCentricInertial"),
 	
-	MoonCentricInertial("EarthMoonBarycentricInertial"),
-	MoonCentricFixed("MoonCentricInertial"),
+	MoonCentricInertial("MoonCentricInertial", "EarthMoonBarycentricInertial"),
+	MoonCentricFixed("MoonCentricFixed", "MoonCentricInertial"),
 	
-	MarsCentricInertial("SolarSystemBarycentricInertial"),
-	MarsCentricFixed("MarsCentricInertial"),
+	MarsCentricInertial("MarsCentricInertial", "SolarSystemBarycentricInertial"),
+	MarsCentricFixed("MarsCentricFixed", "MarsCentricInertial"),
 	
-	AitkenBasinLocalFixed("MoonCentricFixed");
+	AitkenBasinLocalFixed("AitkenBasinLocalFixed", "MoonCentricFixed");
 	
-
+	
+	private String name;
 	private String parentFrame;
 
-	private FrameType (String parentFrame) {
+	private FrameType (String name, String parentFrame) {
+		this.name = name;
 		this.parentFrame = parentFrame;
 	}
 
 	public String getParentFrame() {
 		return ((this.parentFrame == null)?"<None>":this.parentFrame);
+	}
+
+	public static FrameType lookup(String value) {
+		for(FrameType ft : values())
+			if(ft.name.equals(value))
+				return ft;
+		return null;
 	}
 
 }

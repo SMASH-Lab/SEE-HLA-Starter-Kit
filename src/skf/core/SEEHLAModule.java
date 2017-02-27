@@ -33,13 +33,17 @@ import java.util.Observer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import siso.smackdown.FrameType;
-import siso.smackdown.ReferenceFrameObject;
+import siso.smackdown.frame.FrameType;
+import siso.smackdown.frame.ReferenceFrameObject;
 import skf.config.Configuration;
 import skf.exception.PublishException;
 import skf.exception.UnsubscribeException;
 import skf.exception.UpdateException;
+import skf.model.object.ObjectClassModel;
+import skf.model.object.annotations.ObjectClass;
+import hla.rti1516e.AttributeHandleSet;
 import hla.rti1516e.CallbackModel;
+import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.RTIambassador;
 import hla.rti1516e.ResignAction;
 import hla.rti1516e.TimeQueryReturn;
@@ -203,7 +207,7 @@ public class SEEHLAModule {
 
 		// Make the local logical time object.
 		time.initializeLogicalTime();
-		
+
 		// Make the local logical time interval.
 		time.initializeLookaheadInterval();
 
@@ -348,7 +352,7 @@ public class SEEHLAModule {
 	FederateNotExecutionMember, NotConnected, RTIinternalError, IllegalTimeArithmetic {
 
 		fedamb.setAdvancing(false);
-		
+
 		if(rtiamb != null)
 			rtiamb.timeAdvanceRequest(time.nextTimeStep());
 
@@ -417,7 +421,7 @@ public class SEEHLAModule {
 		}
 
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	public void subscribeElementObject(Class objectClass) throws InstantiationException, IllegalAccessException, 
 	NameNotFound, FederateNotExecutionMember, NotConnected, 
@@ -442,7 +446,7 @@ public class SEEHLAModule {
 		else
 			logger.warn("The InteractionClass ' "+interactionClass+" ' is already subscribed.");
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	public void unsubscribeObjectClass(Class objectClass) throws ObjectClassNotDefined, SaveInProgress, 
 	RestoreInProgress, FederateNotExecutionMember, 
@@ -457,7 +461,7 @@ public class SEEHLAModule {
 			throw new UnsubscribeException("Error during unsubscribe the '"+objectClass+"'");
 		}
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	public void unsubscribeInteractionObject(Class interactionClass) throws InteractionClassNotDefined, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError, UnsubscribeException {
 
@@ -470,4 +474,44 @@ public class SEEHLAModule {
 			throw new UnsubscribeException("Error during unsubscribe the "+interactionClass);
 		}
 	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public void requestAttributeValueUpdate(Class objectClass) throws AttributeNotDefined, ObjectClassNotDefined, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError, UnsubscribeException {
+
+		if(fedamb.objectClassModelIsAlreadySubscribed(objectClass)){
+			
+			String classHandleName = ((Class<ObjectClass>)objectClass).getAnnotation(ObjectClass.class).name();
+			ObjectClassModel model = fedamb.getObjectManager().getSubscribedMap().get(classHandleName);
+			ObjectClassHandle objectClassHandle = model.getObjectClassHandle();
+			AttributeHandleSet attributeSet = model.getAttributeHandleSet(objectClassHandle);
+			rtiamb.requestAttributeValueUpdate(objectClassHandle, attributeSet, null);
+		}
+		else{	
+			logger.error("Error: "+objectClass+" is not subscribed!");
+			throw new UnsubscribeException("Error: "+objectClass+" is not subscribed!");
+		}
+			
+
+	}
+
+	@SuppressWarnings("rawtypes")
+	public void waitForAttributeValueUpdate(Class objectClass) {
+		try {
+			fedamb.waitForAttributeValueUpdate(objectClass);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+	}
+
+	@SuppressWarnings("rawtypes")
+	public void waitForElementDiscovery(Class objectClass) {
+		try {
+			fedamb.waitForElementDiscovery(objectClass);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+	}
+
 }

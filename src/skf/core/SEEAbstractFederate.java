@@ -29,7 +29,7 @@ import java.util.Observer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import siso.smackdown.FrameType;
+import siso.smackdown.frame.FrameType;
 import skf.config.Configuration;
 import skf.exception.FirewallExeption;
 import skf.exception.PublishException;
@@ -86,7 +86,9 @@ public abstract class SEEAbstractFederate implements SEEFederateInterface {
 
 	private SEEHLAModule hlamodule= null;
 	private Configuration config = null;
-	private ExecutionThread executionThread = null;
+	
+	private Thread runningThread = null;
+	private ExecutionTask executionTask = null;
 
 	private Time time = null;
 
@@ -133,8 +135,8 @@ public abstract class SEEAbstractFederate implements SEEFederateInterface {
 		} catch (TimeRegulationAlreadyEnabled | TimeConstrainedAlreadyEnabled | AsynchronousDeliveryAlreadyEnabled e) {
 			// ignored
 		}
-
-		this.executionThread = new ExecutionThread(hlamodule, this.time);
+		
+		this.executionTask = new ExecutionTask(hlamodule, this.time);
 
 	}
 
@@ -143,9 +145,15 @@ public abstract class SEEAbstractFederate implements SEEFederateInterface {
 	FederateOwnsAttributes, FederateNotExecutionMember, NotConnected, 
 	RTIinternalError, FederateIsExecutionMember, CallNotAllowedFromWithinCallback, 
 	SaveInProgress, RestoreInProgress {
-		
-		this.executionThread.shutdown();
-		this.hlamodule.disconnect();
+
+		 try {
+			this.executionTask.shutdown();
+			this.runningThread.join(3000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}finally{
+			this.hlamodule.disconnect();
+		}
 
 	}
 
@@ -181,12 +189,13 @@ public abstract class SEEAbstractFederate implements SEEFederateInterface {
 
 	@Override
 	public void startExecution() {
-		this.executionThread.start();
+		this.runningThread = new Thread(executionTask);
+		this.runningThread.start();
 	}
-	
+
 	@Override
 	public void publishElement(Object element) throws NameNotFound, FederateNotExecutionMember, NotConnected, RTIinternalError, InvalidObjectClassHandle, AttributeNotDefined, ObjectClassNotDefined, SaveInProgress, RestoreInProgress, InstantiationException, IllegalAccessException, IllegalName, ObjectInstanceNameInUse, ObjectInstanceNameNotReserved, ObjectClassNotPublished, AttributeNotOwned, ObjectInstanceNotKnown, PublishException, UpdateException {
-		
+
 		publishElement(element, null);
 	}
 
@@ -194,7 +203,7 @@ public abstract class SEEAbstractFederate implements SEEFederateInterface {
 	public void publishElement(Object element, String name) throws NameNotFound, FederateNotExecutionMember, NotConnected, 
 	RTIinternalError, InvalidObjectClassHandle, AttributeNotDefined,
 	ObjectClassNotDefined, SaveInProgress, RestoreInProgress, PublishException, InstantiationException, IllegalAccessException, IllegalName, ObjectInstanceNameInUse, ObjectInstanceNameNotReserved, ObjectClassNotPublished, AttributeNotOwned, ObjectInstanceNotKnown, UpdateException {
-		
+
 		if(objectClassIsValid(element.getClass()))
 			this.hlamodule.publishElement(element, name);
 		else{
@@ -206,7 +215,7 @@ public abstract class SEEAbstractFederate implements SEEFederateInterface {
 
 	@Override
 	public void publishInteraction(Object interaction) throws RTIinternalError, NameNotFound, FederateNotExecutionMember, NotConnected, InvalidInteractionClassHandle, InteractionClassNotDefined, SaveInProgress, RestoreInProgress, InteractionClassNotPublished, InteractionParameterNotDefined, PublishException {
-		
+
 		if(interactionClassIsValid(interaction.getClass()))
 			this.hlamodule.publishInteraction(interaction);
 		else{
@@ -219,7 +228,7 @@ public abstract class SEEAbstractFederate implements SEEFederateInterface {
 	public void updateElement(Object element) throws FederateNotExecutionMember, NotConnected, AttributeNotOwned, AttributeNotDefined, 
 	ObjectInstanceNotKnown, SaveInProgress, RestoreInProgress, RTIinternalError, UpdateException, 
 	IllegalName, ObjectInstanceNameInUse, ObjectInstanceNameNotReserved, ObjectClassNotPublished, ObjectClassNotDefined {
-		
+
 		if(objectClassIsValid(element.getClass()))
 			this.hlamodule.updateElementObject(element);
 		else{
@@ -230,7 +239,7 @@ public abstract class SEEAbstractFederate implements SEEFederateInterface {
 
 	@Override
 	public void updateInteraction(Object interaction) throws InteractionClassNotPublished, InteractionParameterNotDefined, InteractionClassNotDefined, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError, UpdateException {
-		
+
 		if(interactionClassIsValid(interaction.getClass()))
 			this.hlamodule.updateInteraction(interaction);
 		else{
@@ -242,7 +251,7 @@ public abstract class SEEAbstractFederate implements SEEFederateInterface {
 	@Override
 	@SuppressWarnings({ "rawtypes" })
 	public void subscribeElement(Class objectClass) throws InstantiationException, IllegalAccessException, NameNotFound, FederateNotExecutionMember, NotConnected, RTIinternalError, InvalidObjectClassHandle, AttributeNotDefined, ObjectClassNotDefined, SaveInProgress, RestoreInProgress, SubscribeException {
-		
+
 		if(objectClassIsValid(objectClass))
 			this.hlamodule.subscribeElementObject(objectClass);
 		else{
@@ -251,36 +260,60 @@ public abstract class SEEAbstractFederate implements SEEFederateInterface {
 		}
 	}
 
+	@SuppressWarnings("rawtypes")
+	public void requestAttributeValueUpdate(Class objectClass) throws AttributeNotDefined, ObjectClassNotDefined, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError, UnsubscribeException, SubscribeException {
+
+		if(objectClassIsValid(objectClass))
+			this.hlamodule.requestAttributeValueUpdate(objectClass);
+		else{
+			logger.error("ObjectClass: '"+ objectClass +"' is not valid!");
+			throw new SubscribeException("ObjectClass: '"+ objectClass +"' is not valid!");
+		}
+
+	}
+
+	@SuppressWarnings("rawtypes")
+	public void waitForAttributeValueUpdate(Class objectClass) throws SubscribeException {
+		
+		if(objectClassIsValid(objectClass))
+			this.hlamodule.waitForAttributeValueUpdate(objectClass);
+		else{
+			logger.error("ObjectClass: '"+ objectClass +"' is not valid!");
+			throw new SubscribeException("ObjectClass: '"+ objectClass +"' is not valid!");
+		}
+
+	}
+
 	@Override
 	@SuppressWarnings({ "rawtypes" })
 	public void subscribeInteraction(Class interactionClass) throws RTIinternalError, InstantiationException, IllegalAccessException, NameNotFound, FederateNotExecutionMember, NotConnected, InvalidInteractionClassHandle, FederateServiceInvocationsAreBeingReportedViaMOM, InteractionClassNotDefined, SaveInProgress, RestoreInProgress, SubscribeException {
-		
+
 		if(interactionClassIsValid(interactionClass))
 			this.hlamodule.subscribeInteractionObject(interactionClass);
 		else{
 			logger.error("Interaction: '"+ interactionClass +"' is not valid!");
 			throw new SubscribeException("Interaction: '"+ interactionClass +"' is not valid!");
 		}
-		
+
 	}
 
 	@Override
 	@SuppressWarnings({ "rawtypes" })
 	public void unsubscribeElement(Class objectClass) throws ObjectClassNotDefined, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError, UnsubscribeException {
-		
+
 		if(objectClassIsValid(objectClass))
 			this.hlamodule.unsubscribeObjectClass(objectClass);
 		else{
 			logger.error("ObjectClass: '"+ objectClass +"' is not valid!");
 			throw new UnsubscribeException("ObjectClass: '"+ objectClass +"' is not valid!");
 		}
-		
+
 	}
 
 	@Override
 	@SuppressWarnings({ "rawtypes" })
 	public void unsubscribeInteraction(Class interactionClass) throws InteractionClassNotDefined, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError, UnsubscribeException {
-		
+
 		if(interactionClassIsValid(interactionClass))
 			this.hlamodule.unsubscribeInteractionObject(interactionClass);
 		else{
@@ -295,19 +328,30 @@ public abstract class SEEAbstractFederate implements SEEFederateInterface {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private boolean objectClassIsValid(Class objectClass) {
-		
+
 		if(((Class<? extends ObjectClass>)objectClass).getAnnotation(ObjectClass.class) != null &&
 				((Class<? extends ObjectClass>)objectClass).getAnnotation(ObjectClass.class).name() != null)
-				return true;
+			return true;
 		return false;
 	}
-	
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private boolean interactionClassIsValid(Class interactionClass) {
 		if(((Class<? extends InteractionClass>)interactionClass).getAnnotation(InteractionClass.class) != null &&
 				((Class<? extends InteractionClass>)interactionClass).getAnnotation(InteractionClass.class).name() != null)
-				return true;
+			return true;
 		return false;
+	}
+
+	@SuppressWarnings("rawtypes")
+	public void waitForElementDiscovery(Class objectClass) throws UnsubscribeException {
+		if(objectClassIsValid(objectClass))
+			this.hlamodule.waitForElementDiscovery(objectClass);
+		else{
+			logger.error("ObjectClass: '"+ objectClass +"' is not valid!");
+			throw new UnsubscribeException("ObjectClass: '"+ objectClass +"' is not valid!");
+		}
+		
 	}
 
 }

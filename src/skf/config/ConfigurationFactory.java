@@ -37,8 +37,8 @@ import org.codehaus.jackson.map.SerializationConfig.Feature;
 
 /**
  * 
- * @author SMASH-Lab University of Calabria
- * @version 0.1
+ * @author Alberto Falcone, SMASH-Lab University of Calabria
+ * @version 1.0.3
  * 
  */
 public class ConfigurationFactory implements ConfigurationFactoryInterface {
