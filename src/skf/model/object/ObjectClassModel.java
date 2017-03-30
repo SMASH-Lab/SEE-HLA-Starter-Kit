@@ -118,7 +118,8 @@ public class ObjectClassModel {
 		if(status == ObjectModelStatus.INITIALIZED){
 
 			AttributeHandleSet attributeSet = rti_ambassador.getAttributeHandleSetFactory().create();
-			attributeSet.addAll(mapFieldNameAttributeHandle.values());
+			for( AttributeHandle val: mapFieldNameAttributeHandle.values())
+				attributeSet.add(val);
 
 			rti_ambassador.subscribeObjectClassAttributes(objectClassHandle, attributeSet);
 			mapObjectClassHandleAttributeHandleSet.put(objectClassHandle, attributeSet);
