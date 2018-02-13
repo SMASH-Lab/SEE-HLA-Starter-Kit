@@ -29,8 +29,6 @@ import hla.rti1516e.encoding.EncoderFactory;
 import hla.rti1516e.encoding.HLAinteger32LE;
 import hla.rti1516e.exceptions.RTIinternalError;
 
-
-
 public class HLAinteger32LECoder implements Coder<Integer>{
 
 	private HLAinteger32LE coder = null;

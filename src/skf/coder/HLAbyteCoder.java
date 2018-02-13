@@ -29,8 +29,6 @@ import hla.rti1516e.encoding.EncoderFactory;
 import hla.rti1516e.encoding.HLAbyte;
 import hla.rti1516e.exceptions.RTIinternalError;
 
-
-
 public class HLAbyteCoder implements Coder<Byte>{
 
 	private HLAbyte coder = null;

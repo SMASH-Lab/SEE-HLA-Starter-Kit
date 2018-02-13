@@ -32,6 +32,8 @@ import skf.exception.PublishException;
 import skf.exception.SubscribeException;
 import skf.exception.UnsubscribeException;
 import skf.exception.UpdateException;
+import skf.model.interaction.annotations.InteractionClass;
+import skf.model.object.annotations.ObjectClass;
 import hla.rti1516e.exceptions.AttributeNotDefined;
 import hla.rti1516e.exceptions.AttributeNotOwned;
 import hla.rti1516e.exceptions.CallNotAllowedFromWithinCallback;
@@ -66,17 +68,11 @@ import hla.rti1516e.exceptions.RestoreInProgress;
 import hla.rti1516e.exceptions.SaveInProgress;
 import hla.rti1516e.exceptions.UnsupportedCallbackModel;
 
-/**
-* 
-* @author SMASH-Lab University of Calabria
-* @version 0.1
-* 
-*/
 public interface SEEFederateInterface {
 	
 	/**
-	 * Configures the SEE federate on the SEE Federation
-	 * @param config
+	 * Configures the SEE federate parameters
+	 * @param config the Configuration object
 	 */
 	public void configure(Configuration config);
 	
@@ -91,254 +87,312 @@ public interface SEEFederateInterface {
 	 * <p>
 	 * For MAK RTI the local_settings_designator parameter MUST be an empty string<br>
 	 * e.g. ""
-	 * @throws RTIinternalError
-	 * @throws CallNotAllowedFromWithinCallback 
-	 * @throws UnsupportedCallbackModel 
-	 * @throws InvalidLocalSettingsDesignator 
-	 * @throws ConnectionFailed 
-	 * @throws NotConnected 
-	 * @throws FederateNotExecutionMember 
+	 * 
+	 * @throws RTIinternalError internal error related to the specific RTI infrastructure
+	 * @throws CallNotAllowedFromWithinCallback call not allowed from within a callback
+	 * @throws UnsupportedCallbackModel unsupported callback model
+	 * @throws InvalidLocalSettingsDesignator invalid localSettingsDesignator
+	 * @throws ConnectionFailed connection failed
 	 */
-	public void connectOnRTI(String local_settings_designator) throws RTIinternalError, ConnectionFailed, InvalidLocalSettingsDesignator, UnsupportedCallbackModel, CallNotAllowedFromWithinCallback;
+	public void connectToRTI(String local_settings_designator) throws RTIinternalError, ConnectionFailed, InvalidLocalSettingsDesignator, UnsupportedCallbackModel, CallNotAllowedFromWithinCallback;
 	
 	/**
 	 * Joins the Federate to the specified Federation Execution.
-	 * @throws MalformedURLException 
-	 * @throws RTIinternalError 
-	 * @throws CallNotAllowedFromWithinCallback 
-	 * @throws NotConnected 
-	 * @throws RestoreInProgress 
-	 * @throws SaveInProgress 
-	 * @throws CouldNotOpenFDD 
-	 * @throws ErrorReadingFDD 
-	 * @throws InconsistentFDD 
-	 * @throws FederationExecutionDoesNotExist 
-	 * @throws CouldNotCreateLogicalTimeFactory 
-	 * @throws FederateNotExecutionMember 
+	 * 
+	 * @throws MalformedURLException malformed URL exception
+	 * @throws RTIinternalError internal error related to the specific RTI infrastructure
+	 * @throws CallNotAllowedFromWithinCallback call not allowed from within a callback
+	 * @throws NotConnected not connected
+	 * @throws RestoreInProgress restore in progress
+	 * @throws SaveInProgress save in progress
+	 * @throws CouldNotOpenFDD could not open FDD 
+	 * @throws ErrorReadingFDD error reading FDD
+	 * @throws InconsistentFDD inconsistent FDD
+	 * @throws FederationExecutionDoesNotExist federation execution does not exist
+	 * @throws CouldNotCreateLogicalTimeFactory could not create LogicalTimeFactory
+	 * @throws FederateNotExecutionMember federate not execution member
 	 */
-	public void joinIntoFederationExecution() throws CouldNotCreateLogicalTimeFactory, FederationExecutionDoesNotExist, InconsistentFDD, ErrorReadingFDD, CouldNotOpenFDD, SaveInProgress, RestoreInProgress, NotConnected, CallNotAllowedFromWithinCallback, RTIinternalError, MalformedURLException, FederateNotExecutionMember;
+	public void joinFederationExecution() throws CouldNotCreateLogicalTimeFactory, FederationExecutionDoesNotExist, InconsistentFDD, ErrorReadingFDD, CouldNotOpenFDD, SaveInProgress, RestoreInProgress, NotConnected, CallNotAllowedFromWithinCallback, RTIinternalError, MalformedURLException, FederateNotExecutionMember;
 	
 	/**
-	 * Disconnects the SEE Federate from the SEE Federation
-	 * @throws RTIinternalError 
-	 * @throws CallNotAllowedFromWithinCallback 
-	 * @throws NotConnected 
-	 * @throws FederateNotExecutionMember 
-	 * @throws FederateOwnsAttributes 
-	 * @throws OwnershipAcquisitionPending 
-	 * @throws InvalidResignAction 
-	 * @throws FederateIsExecutionMember 
-	 * @throws RestoreInProgress 
-	 * @throws SaveInProgress 
+	 * Shutdowns and disconnects the SEE Federate from the federation execution
+	 *
+	 * @throws InterruptedException interrupted exception
+	 * @throws RestoreInProgress restore in progress
+	 * @throws SaveInProgress save in progress
+	 * @throws FederateIsExecutionMember federate is execution member
+	 * @throws RTIinternalError internal error related to the specific RTI infrastructure
+	 * @throws CallNotAllowedFromWithinCallback call not allowed from within a callback
+	 * @throws NotConnected not connected
+	 * @throws FederateNotExecutionMember federate not execution member
+	 * @throws FederateOwnsAttributes federate owns attributes
+	 * @throws OwnershipAcquisitionPending ownership acquisition pending
+	 * @throws InvalidResignAction invalid resign action
 	 */
-	public void diconnectFromRTI() throws InvalidResignAction, OwnershipAcquisitionPending, FederateOwnsAttributes, FederateNotExecutionMember, NotConnected, CallNotAllowedFromWithinCallback, RTIinternalError, FederateIsExecutionMember, SaveInProgress, RestoreInProgress;
+	public void shudownExecution() throws InterruptedException, InvalidResignAction, OwnershipAcquisitionPending, FederateOwnsAttributes, FederateNotExecutionMember, NotConnected, CallNotAllowedFromWithinCallback, RTIinternalError, FederateIsExecutionMember, SaveInProgress, RestoreInProgress;
 	
 	/**
-	 * Starts Simulation Execution
+	 * Starts the Simulation Execution
+	 * 
+	 * @throws InterruptedException interrupted exception
+	 * @throws RTIinternalError internal error related to the specific RTI infrastructure
+	 * @throws NotConnected not connected
+	 * @throws FederateNotExecutionMember federate not execution member
+	 * @throws RestoreInProgress restore in progress
+	 * @throws SaveInProgress save in progress
 	 */
-	public void startExecution();
+	public void startExecution() throws InterruptedException, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError;
+	
+	/**
+	 * Freezes the Simulation Execution
+	 * 
+	 * @throws InterruptedException interrupted exception
+	 * @throws RTIinternalError internal error related to the specific RTI infrastructure
+	 * @throws NotConnected not connected
+	 * @throws FederateNotExecutionMember federate not execution member
+	 * @throws RestoreInProgress restore in progress
+	 * @throws SaveInProgress save in progress
+	 */
+	public void freezeExecution() throws InterruptedException, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError;
+	
+	/**
+	 * Resumes the Simulation Execution after Freeze
+	 * 
+	 * @throws InterruptedException interrupted exception
+	 * @throws RTIinternalError internal error related to the specific RTI infrastructure
+	 * @throws NotConnected not connected
+	 * @throws FederateNotExecutionMember federate not execution member
+	 * @throws RestoreInProgress restore in progress
+	 * @throws SaveInProgress save in progress
+	 */
+	public void resumeExecution() throws InterruptedException, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError;
 	
 	/**
 	 * Subscribes the specific ReferenceFrame
-	 * @param frameType
-	 * @throws RTIinternalError 
-	 * @throws NotConnected 
-	 * @throws FederateNotExecutionMember 
-	 * @throws RestoreInProgress 
-	 * @throws SaveInProgress 
-	 * @throws ObjectClassNotDefined 
-	 * @throws AttributeNotDefined 
-	 * @throws InvalidObjectClassHandle 
-	 * @throws NameNotFound 
+	 * 
+	 * @param frameType the name of the ReferenceFrame
+	 * 
+	 * @throws RTIinternalError internal error related to the specific RTI infrastructure
+	 * @throws NotConnected not connected
+	 * @throws FederateNotExecutionMember federate not execution member
+	 * @throws RestoreInProgress restore in progress
+	 * @throws SaveInProgress save in progress
+	 * @throws ObjectClassNotDefined HLA ObjectClass not defined
+	 * @throws AttributeNotDefined HLA attribute not defined
+	 * @throws InvalidObjectClassHandle invalid HLA ObjectClass handle 
+	 * @throws NameNotFound name not found
 	 */
 	public void subscribeReferenceFrame(FrameType frameType) throws AttributeNotDefined, ObjectClassNotDefined, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError, NameNotFound, InvalidObjectClassHandle;
 	
 	/**
 	 * Unsubscribes the specific ReferenceFrame
-	 * @param frameType
+	 * 
+	 * @param frameType the specific ReferenceFrame
 	 */
 	public void unsubscribeReferenceFrame(FrameType frameType);
 
 	/**
 	 * Subscribes the SEE Federate to the Subject, in order to be notified about updates.
-	 * @param observer
+	 * 
+	 * @param observer the observer object
 	 */
 	public void subscribeSubject(Observer observer);
 	
 	/**
 	 * Unsubscribes the SEE Federate from the Subject.
-	 * @param observer
+	 * 
+	 * @param observer the observer object
 	 */
 	public void unsubscribeSubject(Observer observer);
 	
 	/**
 	 * Publishes the Element on HLA/RTI platform
-	 * @param element
-	 * @throws UpdateException 
-	 * @throws PublishException 
-	 * @throws ObjectInstanceNotKnown 
-	 * @throws AttributeNotOwned 
-	 * @throws ObjectClassNotPublished 
-	 * @throws ObjectInstanceNameNotReserved 
-	 * @throws ObjectInstanceNameInUse 
-	 * @throws IllegalName 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
-	 * @throws RestoreInProgress 
-	 * @throws SaveInProgress 
-	 * @throws ObjectClassNotDefined 
-	 * @throws AttributeNotDefined 
-	 * @throws InvalidObjectClassHandle 
-	 * @throws RTIinternalError 
-	 * @throws NotConnected 
-	 * @throws FederateNotExecutionMember 
-	 * @throws NameNotFound 
+	 * 
+	 * @param element the element to be published
+	 * 
+	 * @throws UpdateException update exception
+	 * @throws PublishException publish exception
+	 * @throws ObjectInstanceNotKnown object instance not known
+	 * @throws AttributeNotOwned attribute not owned
+	 * @throws ObjectClassNotPublished HLA ObjectClass not published
+	 * @throws ObjectInstanceNameNotReserved object instance name not reserved
+	 * @throws ObjectInstanceNameInUse object instance name in use
+	 * @throws IllegalName illegal name
+	 * @throws IllegalAccessException illegal access exception
+	 * @throws InstantiationException instantiation exception
+	 * @throws RestoreInProgress restore in progress
+	 * @throws SaveInProgress save in progress
+	 * @throws ObjectClassNotDefined HLA ObjectClass not defined
+	 * @throws AttributeNotDefined HLA Attribute not defined
+	 * @throws InvalidObjectClassHandle invalid HLA ObjectClass handle
+	 * @throws RTIinternalError internal error related to the specific RTI infrastructure
+	 * @throws NotConnected not connected 
+	 * @throws FederateNotExecutionMember federate not execution member
+	 * @throws NameNotFound name not found
 	 */
 	public void publishElement(Object element) throws NameNotFound, FederateNotExecutionMember, NotConnected, RTIinternalError, InvalidObjectClassHandle, AttributeNotDefined, ObjectClassNotDefined, SaveInProgress, RestoreInProgress, InstantiationException, IllegalAccessException, IllegalName, ObjectInstanceNameInUse, ObjectInstanceNameNotReserved, ObjectClassNotPublished, AttributeNotOwned, ObjectInstanceNotKnown, PublishException, UpdateException;
 	
 	/**
 	 * Publishes the Element on HLA/RTI platform with the specified name
-	 * @param element
-	 * @param name
-	 * @throws NameNotFound
-	 * @throws FederateNotExecutionMember
-	 * @throws NotConnected
-	 * @throws RTIinternalError
-	 * @throws InvalidObjectClassHandle
-	 * @throws AttributeNotDefined
-	 * @throws ObjectClassNotDefined
-	 * @throws SaveInProgress
-	 * @throws RestoreInProgress
-	 * @throws PublishException
-	 * @throws UpdateException 
-	 * @throws ObjectInstanceNotKnown 
-	 * @throws AttributeNotOwned 
-	 * @throws ObjectClassNotPublished 
-	 * @throws ObjectInstanceNameNotReserved 
-	 * @throws ObjectInstanceNameInUse 
-	 * @throws IllegalName 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
+	 * 
+	 * @param element the element to be published
+	 * @param name the name to give to the element on the HLA/RTI infrastructure
+	 * 
+	 * @throws UpdateException update exception
+	 * @throws PublishException publish exception
+	 * @throws ObjectInstanceNotKnown object instance not known
+	 * @throws AttributeNotOwned attribute not owned
+	 * @throws ObjectClassNotPublished HLA ObjectClass not published
+	 * @throws ObjectInstanceNameNotReserved object instance name not reserved
+	 * @throws ObjectInstanceNameInUse object instance name in use
+	 * @throws IllegalName illegal name
+	 * @throws IllegalAccessException illegal access exception
+	 * @throws InstantiationException instantiation exception
+	 * @throws RestoreInProgress restore in progress
+	 * @throws SaveInProgress save in progress
+	 * @throws ObjectClassNotDefined HLA ObjectClass not defined
+	 * @throws AttributeNotDefined HLA Attribute not defined
+	 * @throws InvalidObjectClassHandle invalid HLA ObjectClass handle
+	 * @throws RTIinternalError internal error related to the specific RTI infrastructure
+	 * @throws NotConnected not connected 
+	 * @throws FederateNotExecutionMember federate not execution member
+	 * @throws NameNotFound name not found
 	 */
 	public void publishElement(Object element, String name) throws NameNotFound, FederateNotExecutionMember, NotConnected, RTIinternalError, InvalidObjectClassHandle, AttributeNotDefined, ObjectClassNotDefined, SaveInProgress, RestoreInProgress, PublishException, InstantiationException, IllegalAccessException, IllegalName, ObjectInstanceNameInUse, ObjectInstanceNameNotReserved, ObjectClassNotPublished, AttributeNotOwned, ObjectInstanceNotKnown, UpdateException;
 	
 	/**
 	 * Publishes the Interaction on HLA/RTI platform
-	 * @param element
-	 * @throws RTIinternalError
-	 * @throws NameNotFound
-	 * @throws FederateNotExecutionMember
-	 * @throws NotConnected
-	 * @throws InvalidInteractionClassHandle
-	 * @throws PublishException
-	 * @throws InteractionParameterNotDefined 
-	 * @throws InteractionClassNotPublished 
-	 * @throws RestoreInProgress 
-	 * @throws SaveInProgress 
-	 * @throws InteractionClassNotDefined 
+	 * 
+	 * @param element the interaction to be published
+	 * 
+	 * @throws RTIinternalError internal error related to the specific RTI infrastructure
+	 * @throws NameNotFound name not found
+	 * @throws FederateNotExecutionMember federate not execution member
+	 * @throws NotConnected not connected
+	 * @throws InvalidInteractionClassHandle invalid interaction class handle
+	 * @throws PublishException publish exception
+	 * @throws InteractionClassNotPublished interaction class not published
+	 * @throws RestoreInProgress restore in progress
+	 * @throws SaveInProgress save in progress
+	 * @throws InteractionClassNotDefined interaction class not defined
+	 * @throws InteractionParameterNotDefined interaction parameter not defined
 	 */
-	public void publishInteraction(Object element) throws RTIinternalError, NameNotFound, FederateNotExecutionMember, NotConnected, InvalidInteractionClassHandle, PublishException, InteractionClassNotDefined, SaveInProgress, RestoreInProgress, InteractionClassNotPublished, InteractionParameterNotDefined;
+	public void publishInteraction(Object element) throws RTIinternalError, 
+	NameNotFound, FederateNotExecutionMember, NotConnected, 
+	InvalidInteractionClassHandle, 
+	PublishException, InteractionClassNotDefined, 
+	SaveInProgress, RestoreInProgress, 
+	InteractionClassNotPublished, InteractionParameterNotDefined;
 	
 	
 	/**
 	 * Updates the Element on HLA/RTI platform
-	 * @param element
-	 * @throws FederateNotExecutionMember
-	 * @throws NotConnected
-	 * @throws AttributeNotOwned
-	 * @throws AttributeNotDefined
-	 * @throws ObjectInstanceNotKnown
-	 * @throws SaveInProgress
-	 * @throws RestoreInProgress
-	 * @throws RTIinternalError
-	 * @throws UpdateException
-	 * @throws ObjectClassNotDefined 
-	 * @throws ObjectClassNotPublished 
-	 * @throws ObjectInstanceNameNotReserved 
-	 * @throws ObjectInstanceNameInUse 
-	 * @throws IllegalName 
+	 * 
+	 * @param element the element to be updated
+	 * 
+	 * @throws FederateNotExecutionMember federate not execution member
+	 * @throws NotConnected not connected
+	 * @throws AttributeNotOwned attribute not owned
+	 * @throws AttributeNotDefined attribute not defined
+	 * @throws ObjectInstanceNotKnown object instance not known
+	 * @throws RestoreInProgress restore in progress
+	 * @throws SaveInProgress save in progress
+	 * @throws RTIinternalError internal error related to the specific RTI infrastructure
+	 * @throws UpdateException update exception
+	 * @throws ObjectClassNotDefined HLA ObjectClass not defined
+	 * @throws ObjectClassNotPublished HLA ObjectClass not published
+	 * @throws ObjectInstanceNameNotReserved object instance name not reserved
+	 * @throws ObjectInstanceNameInUse object instance name in use
+	 * @throws IllegalName illegal name
 	 */
 	public void updateElement(Object element) throws FederateNotExecutionMember, NotConnected, AttributeNotOwned, AttributeNotDefined, ObjectInstanceNotKnown, SaveInProgress, RestoreInProgress, RTIinternalError, UpdateException, IllegalName, ObjectInstanceNameInUse, ObjectInstanceNameNotReserved, ObjectClassNotPublished, ObjectClassNotDefined;
 	
 	/**
-	 * Updates the Interaction on HLA/RTI platform
-	 * @param interaction
-	 * @throws InteractionClassNotPublished
-	 * @throws InteractionParameterNotDefined
-	 * @throws InteractionClassNotDefined
-	 * @throws SaveInProgress
-	 * @throws RestoreInProgress
-	 * @throws FederateNotExecutionMember
-	 * @throws NotConnected
-	 * @throws RTIinternalError
-	 * @throws UpdateException
+	 * Updates the Interaction on the HLA/RTI platform
+	 * 
+	 * @param interaction the interaction to be updated
+	 * 
+	 * @throws InteractionClassNotPublished interaction class not published
+	 * @throws InteractionParameterNotDefined interaction parameter not defined
+	 * @throws InteractionClassNotDefined interaction class not defined
+	 * @throws RestoreInProgress restore in progress
+	 * @throws SaveInProgress save in progress
+	 * @throws FederateNotExecutionMember federate not execution member
+	 * @throws NotConnected not connected
+	 * @throws RTIinternalError internal error related to the specific RTI infrastructure
+	 * @throws UpdateException update exception
 	 */
 	public void updateInteraction(Object interaction) throws InteractionClassNotPublished, InteractionParameterNotDefined, InteractionClassNotDefined, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError, UpdateException;
 	
 	/**
-	 * Subscribes an ElementObject
-	 * @param objectClass
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
-	 * @throws NameNotFound
-	 * @throws FederateNotExecutionMember
-	 * @throws NotConnected
-	 * @throws RTIinternalError
-	 * @throws InvalidObjectClassHandle
-	 * @throws AttributeNotDefined
-	 * @throws ObjectClassNotDefined
-	 * @throws SaveInProgress
-	 * @throws RestoreInProgress
-	 * @throws SubscribeException 
+	 * Subscribes an element
+	 * 
+	 * @param objectClass the element to be subscribed
+	 * 
+	 * @throws InstantiationException instantiation exception
+	 * @throws IllegalAccessException illegal access exception
+	 * @throws NameNotFound name not found
+	 * @throws FederateNotExecutionMember federate not execution member
+	 * @throws NotConnected not connected
+	 * @throws RTIinternalError internal error related to the specific RTI infrastructure
+	 * @throws InvalidObjectClassHandle invalid HLA ObjectClass handle
+	 * @throws AttributeNotDefined attribute not defined
+	 * @throws ObjectClassNotDefined object class not defined
+	 * @throws RestoreInProgress restore in progress
+	 * @throws SaveInProgress save in progress
+	 * @throws SubscribeException subscribe exception
 	 */
-	@SuppressWarnings("rawtypes")
-	public void subscribeElement(Class objectClass) throws InstantiationException, IllegalAccessException, NameNotFound, FederateNotExecutionMember, NotConnected, RTIinternalError, InvalidObjectClassHandle, AttributeNotDefined, ObjectClassNotDefined, SaveInProgress, RestoreInProgress, SubscribeException;
+	public void subscribeElement(Class<? extends ObjectClass> objectClass) throws InstantiationException, IllegalAccessException, NameNotFound, FederateNotExecutionMember, NotConnected, RTIinternalError, InvalidObjectClassHandle, AttributeNotDefined, ObjectClassNotDefined, SaveInProgress, RestoreInProgress, SubscribeException;
 	
 	/**
 	 * Subscribes an InteractionObject
-	 * @param interactionClass
-	 * @throws RTIinternalError
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
-	 * @throws NameNotFound
-	 * @throws FederateNotExecutionMember
-	 * @throws NotConnected
-	 * @throws InvalidInteractionClassHandle
-	 * @throws FederateServiceInvocationsAreBeingReportedViaMOM
-	 * @throws InteractionClassNotDefined
-	 * @throws SaveInProgress
-	 * @throws RestoreInProgress
-	 * @throws SubscribeException 
+	 * 
+	 * @param interactionClass the interaction to be subscribed
+	 * 
+	 * @throws RTIinternalError internal error related to the specific RTI infrastructure
+	 * @throws InstantiationException instantiation exception
+	 * @throws IllegalAccessException illegal access exception
+	 * @throws NameNotFound name not found
+	 * @throws FederateNotExecutionMember federate not execution member
+	 * @throws NotConnected not connected
+	 * @throws InvalidInteractionClassHandle invalid interaction class handle
+	 * @throws FederateServiceInvocationsAreBeingReportedViaMOM federate service invocations are being reported via MOM
+	 * @throws InteractionClassNotDefined interaction class not defined
+	 * @throws RestoreInProgress restore in progress
+	 * @throws SaveInProgress save in progress
+	 * @throws SubscribeException subscribe exception
 	 */
-	@SuppressWarnings("rawtypes")
-	public void subscribeInteraction(Class interactionClass) throws RTIinternalError, InstantiationException, IllegalAccessException, NameNotFound, FederateNotExecutionMember, NotConnected, InvalidInteractionClassHandle, FederateServiceInvocationsAreBeingReportedViaMOM, InteractionClassNotDefined, SaveInProgress, RestoreInProgress, SubscribeException;
+	public void subscribeInteraction(Class<? extends InteractionClass> interactionClass) throws RTIinternalError, InstantiationException, IllegalAccessException, NameNotFound, FederateNotExecutionMember, NotConnected, InvalidInteractionClassHandle, FederateServiceInvocationsAreBeingReportedViaMOM, InteractionClassNotDefined, SaveInProgress, RestoreInProgress, SubscribeException;
 	
 	/**
 	 * Unsubscribes an ElementObject
-	 * @param objectClass
-	 * @throws ObjectClassNotDefined
-	 * @throws SaveInProgress
-	 * @throws RestoreInProgress
-	 * @throws FederateNotExecutionMember
-	 * @throws NotConnected
-	 * @throws RTIinternalError
-	 * @throws UnsubscribeException 
+	 * 
+	 * @param objectClass the objectClass to be subscribed
+	 * 
+	 * @throws ObjectClassNotDefined HLA ObjectClass not defined
+	 * @throws RestoreInProgress restore in progress
+	 * @throws SaveInProgress save in progress
+	 * @throws FederateNotExecutionMember federate not execution member
+	 * @throws NotConnected not connected
+	 * @throws RTIinternalError internal error related to the specific RTI infrastructure
+	 * @throws UnsubscribeException unsubscribe exception
 	 */
-	@SuppressWarnings("rawtypes")
-	public void unsubscribeElement(Class objectClass) throws ObjectClassNotDefined, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError, UnsubscribeException;
+	public void unsubscribeElement(Class<? extends ObjectClass> objectClass) throws ObjectClassNotDefined, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError, UnsubscribeException;
 	
 	/**
 	 * Unsubscribes an InteractionObject
-	 * @param objectClass
-	 * @throws InteractionClassNotDefined
-	 * @throws SaveInProgress
-	 * @throws RestoreInProgress
-	 * @throws FederateNotExecutionMember
-	 * @throws NotConnected
-	 * @throws RTIinternalError
-	 * @throws UnsubscribeException
+	 * 
+	 * @param interactionClass the interactionClass to be unsubscribed
+	 * 
+	 * @throws InteractionClassNotDefined interaction class not defined
+	 * @throws RestoreInProgress restore in progress
+	 * @throws SaveInProgress save in progress
+	 * @throws FederateNotExecutionMember federate not execution member
+	 * @throws NotConnected not connected
+	 * @throws RTIinternalError internal error related to the specific RTI infrastructure
+	 * @throws UnsubscribeException unsubscribe exception
 	 */
-	@SuppressWarnings("rawtypes")
-	public void unsubscribeInteraction(Class objectClass) throws InteractionClassNotDefined, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError, UnsubscribeException;
+	public void unsubscribeInteraction(Class<? extends InteractionClass> interactionClass) throws InteractionClassNotDefined, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError, UnsubscribeException;
+
 
 }

@@ -25,7 +25,7 @@ package skf.exception;
 
 public class UnsubscribeException extends Exception {
 	
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 6282724777144654649L;
 
 	public UnsubscribeException(String message){
 		super(message);

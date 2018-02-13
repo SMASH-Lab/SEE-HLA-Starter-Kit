@@ -30,35 +30,34 @@ import java.io.IOException;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 
-/**
-* 
-* @author SMASH-Lab University of Calabria
-* @version 0.1
-* 
-*/
 public interface ConfigurationFactoryInterface {
 		
 	/**
 	 * Imports the configuration parameters from a given file
-	 * @param file configuration file
-	 * @throws FileNotFoundException 
-	 * @throws IOException 
-	 * @throws JsonMappingException 
-	 * @throws JsonParseException 
+	 * 
+	 * @param file the configuration file as json
+	 * @return a Configuration object rapresentation of the configuration file
+	 * 
+	 * @throws FileNotFoundException file not found
+	 * @throws IOException io exception
+	 * @throws JsonMappingException json exception during the attribute mapping process.
+	 * @throws JsonParseException json exception during the attribute parsing process.
 	 */
 	public Configuration importConfiguration(File file) throws FileNotFoundException, JsonParseException, JsonMappingException, IOException;
 	
 	/**
-	 * Export the configuration parameters into a given directory
-	 * @param config AbstractConfiguration object
+	 * Exports the configuration parameters into a given directory
+	 * 
+	 * @param config AbstractConfiguration the configuration object
 	 * @param outputFile output file
-	 * @throws IOException 
+	 * @throws IOException io exception
 	 */
 	public void exportConfiguration(Configuration config, File outputFile) throws IOException;
 
 	
 	/**
-	 * Create an empty Configuration object
+	 * Creates an empty Configuration object
+	 * 
 	 * @return an empty Configuration object
 	 */
 	public Configuration createConfiguration();

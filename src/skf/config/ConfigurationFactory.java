@@ -34,13 +34,6 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig.Feature;
 
-
-/**
- * 
- * @author Alberto Falcone, SMASH-Lab University of Calabria
- * @version 1.0.3
- * 
- */
 public class ConfigurationFactory implements ConfigurationFactoryInterface {
 
 	Logger logger = LogManager.getLogger(ConfigurationFactory.class);

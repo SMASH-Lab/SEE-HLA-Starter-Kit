@@ -21,22 +21,45 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library. 
 If not, see http://http://www.gnu.org/licenses/
 *****************************************************************/
-package skf.exception;
+package skf.transition;
 
-public class TimeOutException extends RuntimeException {
+import skf.core.ExecutionTask;
+import skf.core.SEEAbstractFederate;
 
-	private static final long serialVersionUID = 2905830034915116015L;
+public class TransitionManager {
 	
-	public TimeOutException(String message){
-		super(message);
-	}
+	private SEEAbstractFederate federate = null;
+	private ExecutionTask executionTask = null;
+	private int MAX_WAIT_TIME = 0;
 	
-	public TimeOutException(Throwable cause){
-		super(cause);
-	}
-	
-	public TimeOutException(String message, Throwable cause){
-		super(message, cause);
+
+	public TransitionManager(SEEAbstractFederate federate, int MAX_WAIT_TIME) {
+		this.federate = federate;
+		this.MAX_WAIT_TIME = MAX_WAIT_TIME;
 	}
 
+	public void setExecutionTask(ExecutionTask executionTask) {
+		this.executionTask  = executionTask;
+		
+	}
+
+	public void start() {
+		Thread run_th = new Thread(new RunTask(federate, executionTask, MAX_WAIT_TIME));
+		run_th.start();
+	}
+
+	public void freeze() {
+		Thread freeze_th = new Thread(new FreezeTask(federate, executionTask, MAX_WAIT_TIME));
+		freeze_th.start();
+	}
+
+	public void resume() {
+		Thread resume_th = new Thread(new RunTask(federate, executionTask, true, MAX_WAIT_TIME));
+		resume_th.start();
+	}
+
+	public void shutdown() {
+		Thread shutdown_th = new Thread(new ShutdownTask(federate, executionTask, MAX_WAIT_TIME));
+		shutdown_th.start();
+	}
 }

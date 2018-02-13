@@ -18,41 +18,50 @@ Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public
 License along with this library. 
 If not, see http://http://www.gnu.org/licenses/
-*****************************************************************/
+ *****************************************************************/
 package skf.core;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
+import hla.rti1516e.exceptions.CallNotAllowedFromWithinCallback;
+import hla.rti1516e.exceptions.FederateIsExecutionMember;
+import hla.rti1516e.exceptions.FederateNotExecutionMember;
+import hla.rti1516e.exceptions.FederateOwnsAttributes;
+import hla.rti1516e.exceptions.InvalidResignAction;
+import hla.rti1516e.exceptions.NotConnected;
+import hla.rti1516e.exceptions.OwnershipAcquisitionPending;
 import hla.rti1516e.exceptions.RTIexception;
+import hla.rti1516e.exceptions.RTIinternalError;
+import hla.rti1516e.exceptions.RestoreInProgress;
+import hla.rti1516e.exceptions.SaveInProgress;
 
 public class ExecutionTask implements Runnable {
-	
+
 	private static final long USEC_PER_CYCLE = 1000000;
 
 	private SEEAbstractFederate federate = null;
 	private SEEAbstractFederateAmbassador fedamb = null;
 	private SEEHLAModule hlamodule = null;
 
-	private AtomicBoolean CONTINUE_EXECUTION = null;	
+	private boolean isRunning = true;	
+	private boolean isSuspended = false;
 
 	private long exec_loop_counter  = 0;     		 	
 
 	// Simulation time parameters.
 	private Time time = null;
 
-	protected ExecutionTask(SEEHLAModule hlamodule, Time time) {
+	public ExecutionTask(SEEHLAModule hlamodule, Time time) {
 		this.hlamodule = hlamodule;
 		this.federate = hlamodule.getFederate();
 		this.fedamb = hlamodule.getAmbassador();
 		this.time = time;
-		this.CONTINUE_EXECUTION = new AtomicBoolean(true);
 	}
 
 	@Override
 	public void run() {
 
-		while(CONTINUE_EXECUTION.get()){
-			time.setFederateExecutionTimeCycle(exec_loop_counter * USEC_PER_CYCLE);
+		while(isRunning){
+
+			time.setFederateTimeCycle(exec_loop_counter * USEC_PER_CYCLE);
 
 			// check realtime execution
 			if (federate.getConfig().isRealtime()) {
@@ -63,28 +72,62 @@ public class ExecutionTask implements Runnable {
 				}
 			}
 			// Wait for the time advance grant.
-			while(!fedamb.isAdvancing()){
-				try {
-					Thread.sleep(10);
-				} catch( Exception e ) {
-					e.printStackTrace();
-				}
-			}
+			waitForAdvanceTimeGrant();
 
 			federate.doAction();
 
+			synchronized (this) {
+				while(isSuspended)
+					try {
+						wait();
+					} catch (InterruptedException e1) {
+						e1.printStackTrace();
+					}
+			}
 			// Request a time advance by the logical time interval.
 			try {
-				hlamodule.makeTARequest();
+				hlamodule.advanceTime(time.nextTimeStep());
+				// Wait here for time advance grant.
+				waitForAdvanceTimeGrant();
 			} catch (RTIexception e) {
 				e.printStackTrace();
 			}
 			exec_loop_counter++;
 		}
+		
+		try {
+			hlamodule.disconnect();
+		} catch (InvalidResignAction | OwnershipAcquisitionPending
+				| FederateOwnsAttributes | FederateNotExecutionMember
+				| NotConnected | CallNotAllowedFromWithinCallback
+				| RTIinternalError | FederateIsExecutionMember | SaveInProgress
+				| RestoreInProgress e) {
+			e.printStackTrace();
+		}
 
 	}
 
-	protected void shutdown() {
-		this.CONTINUE_EXECUTION.set(false);
+	private void waitForAdvanceTimeGrant() {
+		while(fedamb.isAdvancing() && isRunning){
+			try {
+				Thread.sleep(10);
+			} catch( Exception e ) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public synchronized void shutdown() {
+		this.isRunning = false;
+	}
+
+	public synchronized void suspend() {
+		this.isSuspended = true;
+
+	}
+
+	public synchronized void resume() {
+		this.isSuspended = false;
+		notify();
 	}
 }

@@ -21,21 +21,31 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library. 
 If not, see http://http://www.gnu.org/licenses/
 *****************************************************************/
-package skf.exception;
+package skf.transition;
 
-public class SubscribeException extends Exception {
+import skf.core.ExecutionTask;
+import skf.core.SEEAbstractFederate;
+
+public abstract class AbstractTask implements Runnable {
 	
-	private static final long serialVersionUID = 7560980667400210123L;
+	protected SEEAbstractFederate federate = null;
+	
+	protected ExecutionTask executionTask = null;
+	
+	protected int MAX_WAIT_TIME = 0;
+	
+	//shared object among threads
+	protected final Thread executionThread;
 
-	public SubscribeException(String message){
-		super(message);
+	public AbstractTask(SEEAbstractFederate federate, ExecutionTask executionTask, int MAX_WAIT_TIME) {
+		this.federate  = federate;
+		this.executionTask  = executionTask;
+		this.executionThread = new Thread(executionTask);
+		this.MAX_WAIT_TIME = MAX_WAIT_TIME;
 	}
 	
-	public SubscribeException(String message, Throwable cause){
-		super(message, cause);
+	protected Thread getExecutionThread(){
+		return this.executionThread;
 	}
-    
-	public SubscribeException(Throwable cause){
-		super(cause);
-	} 
+
 }

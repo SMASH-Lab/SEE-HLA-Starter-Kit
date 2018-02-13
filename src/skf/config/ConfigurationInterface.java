@@ -25,17 +25,10 @@ package skf.config;
 
 import java.io.File;
 
-import org.joda.time.DateTime;
-
 /**
- *
  * The root interface in the Configuration hierarchy.
  * A configuration is a set of parameters related to the SEE event, which are used by the SKF framework
  * to set up a SEE Federate on the specific RTI infrastructure. 
- * 
- * @author SMASH-Lab University of Calabria
- * @version 0.1
- * 
  */
 public interface ConfigurationInterface {
 	
@@ -63,6 +56,12 @@ public interface ConfigurationInterface {
 	 * @return The type of the SEE Federate
 	 */
 	public String getFederateType();
+	
+	/**
+	 * 
+	 * @return the federateRole (EARLY or LATE)
+	 */
+	public String getFederateRole();
 	
 	/**
 	 * @return The directory that contains the FOMs module
@@ -126,6 +125,12 @@ public interface ConfigurationInterface {
 	public void setFederateType(String federateType);
 	
 	/**
+	 * Sets the role of the federate (EARLY or LATE)
+	 * @param federateRole the new role (EARLY or LATE)
+	 */
+	public void setFederateRole(String federateRole);
+	
+	/**
 	 * Sets the FOMs directory to the specified value passed as parameter
 	 * @param dir the FOMs directory
 	 */
@@ -151,14 +156,27 @@ public interface ConfigurationInterface {
 	
 	/**
 	 * 
-	 * @return The simulation start ephoc
+	 * @return The Simulation Scenario Time Ephoc
 	 */
-	public DateTime getSimulationEphoc();
+	public double getSimulationScenarioTimeEphoc();
+
+	/**
+	 * Sets the Simulation Scenario Time Ephoc
+	 * @param simulationScenarioTimeEphoc the simulation scenario time expressed as Truncaded Julian Date (TJD)
+	 */
+	public void setSimulationScenarioTimeEphoc(double simulationScenarioTimeEphoc);
 	
 	/**
-	 * Sets the simulation start ephoc
-	 * @param simulationEphoc
+	 * Sets the lookahead time for the simulation execution
+	 * @param lookahead the simulation execution lookahead interval expressed in milliseconds
 	 */
-	public void setSimulationEphoc(DateTime simulationEphoc);
+	public void setLookahead(long lookahead);
+	
+	/**
+	 * 
+	 * @return the lookahead time
+	 */
+	public long getLookahead();
+
 	
 }

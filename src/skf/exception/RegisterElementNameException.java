@@ -2,7 +2,7 @@ package skf.exception;
 
 public class RegisterElementNameException extends Exception {
 	
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1162350781464584024L;
 
 	public RegisterElementNameException(String message){
 		super(message);

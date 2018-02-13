@@ -42,7 +42,6 @@ import skf.model.object.annotations.Attribute;
 import skf.model.object.annotations.ObjectClass;
 import skf.model.parser.AbstractObjectModelParser;
 
-@SuppressWarnings("rawtypes")
 public class ObjectClassModelParser extends AbstractObjectModelParser {
 
 	private static final Logger logger = LogManager.getLogger(ObjectClassModelParser.class);
@@ -55,12 +54,13 @@ public class ObjectClassModelParser extends AbstractObjectModelParser {
 		retrieveClassModelStructure();
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected void retrieveClassModelStructure() {
 
 		this.classHandleName = objectClassModel.getAnnotation(ObjectClass.class).name();
 
 		fields = objectClassModel.getDeclaredFields();
-		Map<Class, Coder> tmpMapCoder = new HashMap<Class, Coder>();
+		Map<Class<? extends ObjectClass>, Coder> tmpMapCoder = new HashMap<Class<? extends ObjectClass>, Coder>();
 		Coder coderTmp = null;
 
 		try {
@@ -69,7 +69,7 @@ public class ObjectClassModelParser extends AbstractObjectModelParser {
 					coderTmp = tmpMapCoder.get(f.getAnnotation(Attribute.class).coder());
 					if(coderTmp == null){
 						coderTmp = f.getAnnotation(Attribute.class).coder().newInstance();
-						tmpMapCoder.put(f.getAnnotation(Attribute.class).coder(), coderTmp);
+						tmpMapCoder.put((Class<? extends ObjectClass>) f.getAnnotation(Attribute.class).coder(), coderTmp);
 					}
 					matchingObjectCoderIsValid(f, coderTmp);
 					mapFieldCoder.put(f.getAnnotation(Attribute.class).name(), coderTmp);
@@ -85,7 +85,7 @@ public class ObjectClassModelParser extends AbstractObjectModelParser {
 
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Map<String, byte[]> encode(Object element) {
 
 		if(element == null){
@@ -139,8 +139,12 @@ public class ObjectClassModelParser extends AbstractObjectModelParser {
 					pd = new PropertyDescriptor(f.getName(), element.getClass());
 					fieldCoder = this.mapFieldCoder.get(f.getAnnotation(Attribute.class).name());
 					currValue = arg1.get(mapFieldNameAttributeHandle.get(f.getAnnotation(Attribute.class).name()));
-					pd.getWriteMethod().invoke(element, fieldCoder.decode(currValue));
-					logger.debug("Attribute decoded [ Field "+f.getName()+", value: "+fieldCoder.decode(currValue)+" ]");
+					if(currValue != null){
+						pd.getWriteMethod().invoke(element, fieldCoder.decode(currValue));
+						logger.debug("Attribute decoded [ Field "+f.getName()+", value: "+fieldCoder.decode(currValue)+" ]");
+						}
+					else
+						logger.debug("Attribute decoded [ Field "+f.getName()+", value: null ]");
 				}
 		} catch (IntrospectionException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | DecoderException e) {
 			e.printStackTrace();

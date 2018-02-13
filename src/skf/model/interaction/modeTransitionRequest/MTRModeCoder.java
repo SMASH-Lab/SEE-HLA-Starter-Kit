@@ -21,21 +21,40 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library. 
 If not, see http://http://www.gnu.org/licenses/
 *****************************************************************/
-package skf.exception;
+package skf.model.interaction.modeTransitionRequest;
 
-public class SubscribeException extends Exception {
-	
-	private static final long serialVersionUID = 7560980667400210123L;
+import hla.rti1516e.RtiFactoryFactory;
+import hla.rti1516e.encoding.DecoderException;
+import hla.rti1516e.encoding.EncoderFactory;
+import hla.rti1516e.encoding.HLAinteger16LE;
+import hla.rti1516e.exceptions.RTIinternalError;
+import skf.coder.Coder;
 
-	public SubscribeException(String message){
-		super(message);
-	}
+public class MTRModeCoder implements Coder<MTRMode> {
 	
-	public SubscribeException(String message, Throwable cause){
-		super(message, cause);
+	private HLAinteger16LE coder = null;
+	private EncoderFactory factory = null;
+	
+	public MTRModeCoder() throws RTIinternalError {
+		this.factory = RtiFactoryFactory.getRtiFactory().getEncoderFactory();
+		this.coder = factory.createHLAinteger16LE();
 	}
-    
-	public SubscribeException(Throwable cause){
-		super(cause);
-	} 
+
+	@Override
+	public MTRMode decode(byte[] code) throws DecoderException {
+		coder.decode(code);
+		return MTRMode.lookup(coder.getValue());
+	}
+
+	@Override
+	public byte[] encode(MTRMode element) {
+		coder.setValue(element.getValue());
+		return coder.toByteArray();
+	}
+
+	@Override
+	public Class<MTRMode> getAllowedType() {
+		return MTRMode.class;
+	}
+
 }

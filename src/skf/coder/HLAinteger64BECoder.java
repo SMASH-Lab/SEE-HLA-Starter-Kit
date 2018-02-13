@@ -29,8 +29,6 @@ import hla.rti1516e.encoding.EncoderFactory;
 import hla.rti1516e.encoding.HLAinteger64BE;
 import hla.rti1516e.exceptions.RTIinternalError;
 
-
-
 public class HLAinteger64BECoder implements Coder<Long>{
 
 	private HLAinteger64BE coder = null;

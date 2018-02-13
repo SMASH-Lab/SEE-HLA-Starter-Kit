@@ -25,7 +25,7 @@ package skf.exception;
 
 public class UpdateException extends Exception {
 	
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 8080894816214726912L;
 
 	public UpdateException(String message){
 		super(message);

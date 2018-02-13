@@ -23,10 +23,10 @@ If not, see http://http://www.gnu.org/licenses/
 *****************************************************************/
 package skf.model.interaction;
 
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import hla.rti1516e.InteractionClassHandle;
 import hla.rti1516e.ParameterHandle;
@@ -47,8 +47,10 @@ import hla.rti1516e.exceptions.SaveInProgress;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import skf.coder.Coder;
 import skf.core.SEERTIAmbassador;
 import skf.model.ObjectModelStatus;
+import skf.model.interaction.annotations.InteractionClass;
 
 public class InteractionClassModel {
 
@@ -66,13 +68,13 @@ public class InteractionClassModel {
 
 	private ParameterHandleValueMap parameter_values = null;
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public InteractionClassModel(Class interactionClass) throws RTIinternalError, NameNotFound, FederateNotExecutionMember, NotConnected, InvalidInteractionClassHandle {
+	public InteractionClassModel(Class<? extends InteractionClass> interactionClass) throws RTIinternalError, NameNotFound, FederateNotExecutionMember, NotConnected, InvalidInteractionClassHandle {
 		this.rti_ambassador = SEERTIAmbassador.getInstance();
 		this.parser = new InteractionClassModelParser(interactionClass);
 		initialize();
 	}
 
+	@SuppressWarnings("rawtypes")
 	private void initialize() throws NameNotFound, FederateNotExecutionMember, NotConnected, RTIinternalError, InvalidInteractionClassHandle {
 
 		if(status == ObjectModelStatus.UNKNOWN){
@@ -82,10 +84,11 @@ public class InteractionClassModel {
 			this.mapFieldNameParameterHandle = new HashMap<String, ParameterHandle>();
 
 			// Get handles to all the attributes.
-			ParameterHandle tmp = null;
-			for(String str : parser.getMapFieldCoder().keySet()){
-				tmp = rti_ambassador.getParameterHandle(interactionClassHandle, str);
-				mapFieldNameParameterHandle.put(str, tmp);
+			ParameterHandle parameterHandleTmp = null;
+			Set<Map.Entry<String, Coder>> set = parser.getMapFieldCoder().entrySet();
+			for(Map.Entry<String, Coder> entry : set){
+				parameterHandleTmp = rti_ambassador.getParameterHandle(interactionClassHandle, entry.getKey());
+				mapFieldNameParameterHandle.put(entry.getKey(), parameterHandleTmp);
 			}
 
 			this.parameter_values = rti_ambassador.getParameterHandleValueMapFactory().create(mapFieldNameParameterHandle.size());

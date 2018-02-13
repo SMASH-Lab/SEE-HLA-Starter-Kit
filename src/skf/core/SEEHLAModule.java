@@ -39,10 +39,13 @@ import skf.config.Configuration;
 import skf.exception.PublishException;
 import skf.exception.UnsubscribeException;
 import skf.exception.UpdateException;
+import skf.model.interaction.annotations.InteractionClass;
 import skf.model.object.ObjectClassModel;
 import skf.model.object.annotations.ObjectClass;
+import skf.synchronizationPoint.SynchronizationPoint;
 import hla.rti1516e.AttributeHandleSet;
 import hla.rti1516e.CallbackModel;
+import hla.rti1516e.LogicalTime;
 import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.RTIambassador;
 import hla.rti1516e.ResignAction;
@@ -58,6 +61,7 @@ import hla.rti1516e.exceptions.CouldNotCreateLogicalTimeFactory;
 import hla.rti1516e.exceptions.CouldNotOpenFDD;
 import hla.rti1516e.exceptions.ErrorReadingFDD;
 import hla.rti1516e.exceptions.FederateAlreadyExecutionMember;
+import hla.rti1516e.exceptions.FederateInternalError;
 import hla.rti1516e.exceptions.FederateIsExecutionMember;
 import hla.rti1516e.exceptions.FederateNameAlreadyInUse;
 import hla.rti1516e.exceptions.FederateNotExecutionMember;
@@ -65,7 +69,6 @@ import hla.rti1516e.exceptions.FederateOwnsAttributes;
 import hla.rti1516e.exceptions.FederateServiceInvocationsAreBeingReportedViaMOM;
 import hla.rti1516e.exceptions.FederationExecutionDoesNotExist;
 import hla.rti1516e.exceptions.IllegalName;
-import hla.rti1516e.exceptions.IllegalTimeArithmetic;
 import hla.rti1516e.exceptions.InTimeAdvancingState;
 import hla.rti1516e.exceptions.InconsistentFDD;
 import hla.rti1516e.exceptions.InteractionClassNotDefined;
@@ -74,7 +77,6 @@ import hla.rti1516e.exceptions.InteractionParameterNotDefined;
 import hla.rti1516e.exceptions.InvalidInteractionClassHandle;
 import hla.rti1516e.exceptions.InvalidLocalSettingsDesignator;
 import hla.rti1516e.exceptions.InvalidLogicalTime;
-import hla.rti1516e.exceptions.InvalidLookahead;
 import hla.rti1516e.exceptions.InvalidObjectClassHandle;
 import hla.rti1516e.exceptions.InvalidResignAction;
 import hla.rti1516e.exceptions.LogicalTimeAlreadyPassed;
@@ -86,18 +88,18 @@ import hla.rti1516e.exceptions.ObjectInstanceNameInUse;
 import hla.rti1516e.exceptions.ObjectInstanceNameNotReserved;
 import hla.rti1516e.exceptions.ObjectInstanceNotKnown;
 import hla.rti1516e.exceptions.OwnershipAcquisitionPending;
+import hla.rti1516e.exceptions.RTIexception;
 import hla.rti1516e.exceptions.RTIinternalError;
 import hla.rti1516e.exceptions.RequestForTimeConstrainedPending;
 import hla.rti1516e.exceptions.RequestForTimeRegulationPending;
 import hla.rti1516e.exceptions.RestoreInProgress;
 import hla.rti1516e.exceptions.SaveInProgress;
-import hla.rti1516e.exceptions.TimeConstrainedAlreadyEnabled;
+import hla.rti1516e.exceptions.SynchronizationPointLabelNotAnnounced;
 import hla.rti1516e.exceptions.TimeConstrainedIsNotEnabled;
-import hla.rti1516e.exceptions.TimeRegulationAlreadyEnabled;
 import hla.rti1516e.exceptions.TimeRegulationIsNotEnabled;
 import hla.rti1516e.exceptions.UnsupportedCallbackModel;
 import hla.rti1516e.time.HLAinteger64Time;
-
+import hla.rti1516e.time.HLAinteger64TimeFactory;
 
 public class SEEHLAModule {
 
@@ -108,7 +110,6 @@ public class SEEHLAModule {
 	private SEEAbstractFederateAmbassador fedamb = null;
 
 	//Handle simulation time
-	private TimeQueryReturn startingGALT;
 	private Time time = null;
 
 	protected SEEHLAModule(SEEAbstractFederate federate, SEEAbstractFederateAmbassador fedamb) {
@@ -194,22 +195,24 @@ public class SEEHLAModule {
 
 	}
 
-
-	protected void configureTimeManager() throws InvalidLookahead, InTimeAdvancingState, RequestForTimeRegulationPending, TimeRegulationAlreadyEnabled, 
-	SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError, AsynchronousDeliveryAlreadyEnabled, 
-	RequestForTimeConstrainedPending, TimeConstrainedAlreadyEnabled {
-		logger.info("Set up time management.");
+	protected void configureAsynchronousDelivery() throws AsynchronousDeliveryAlreadyEnabled, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError{
 		//enable asynchronous delivey
 		if(federate.getConfig().isAsynchronousDelivery()){
 			logger.info("Asynchronous delivery enabled.");
 			rtiamb.enableAsynchronousDelivery();
 		}
+	}
+
+
+	protected void configureTimePolicy() throws RTIexception {
+		logger.info("Set up time management.");
+
 
 		// Make the local logical time object.
-		time.initializeLogicalTime();
+		time.initializeFederationLogicalTime();
 
 		// Make the local logical time interval.
-		time.initializeLookaheadInterval();
+		time.initializeFederationLookaheadInterval(federate.getConfig().getLookahead());
 
 		// Make this federate time constrained.
 		// Enable time constraint.
@@ -226,14 +229,11 @@ public class SEEHLAModule {
 			}
 		}// IF-TIME CONSTRAINED
 
-		// Advance time to the current federation execution time.
-		advanceToCurrentHLAtime();
-
 		// Make this federate time regulating.
 		// Enable time regulation.
 		if(federate.getConfig().isTimeRegulating()){
 			logger.debug("Time regulating enabled.");
-			rtiamb.enableTimeRegulation(time.getLookaheadInterval());
+			rtiamb.enableTimeRegulation(time.getFederationLookaheadInterval());
 			// Wait for time regulation to take affect.
 			while(!fedamb.isRegulating()){
 				try {
@@ -244,53 +244,52 @@ public class SEEHLAModule {
 			}
 		}// IF-TIME REGULATION
 
+	}
+
+
+	@SuppressWarnings("rawtypes")
+	public void advanceTime(LogicalTime nextLogicaTime) throws LogicalTimeAlreadyPassed, InvalidLogicalTime, InTimeAdvancingState, RequestForTimeRegulationPending, RequestForTimeConstrainedPending, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError{
 		// At initialization, time can advance.
-		fedamb.setAdvancing(true);
-
+		fedamb.setIsAdvancing(true);
+		rtiamb.timeAdvanceRequest(nextLogicaTime);
 	}
 
-	private boolean advanceToCurrentHLAtime() {
+	public void queryToGALT() throws RTIexception{
+
 		// For late joining federates, advance time to GALT.
-		try {
-			startingGALT = rtiamb.queryGALT();
-		} catch (Exception e) {
-			return false;
-		}
+		TimeQueryReturn TimeQueryGALT = rtiamb.queryGALT();
 
-		if (startingGALT.timeIsValid) {
-			try {
-				time.setLogicalTime((HLAinteger64Time)startingGALT.time);
-				rtiamb.timeAdvanceRequest(startingGALT.time);
-			} catch (Exception e) {
-				return true ;
-			}
+		if (TimeQueryGALT.timeIsValid) {
+			//time.setLogicalTime(startingGALT.time);
+			HLAinteger64Time GALT = (HLAinteger64Time) TimeQueryGALT.time;
+			long LCTS = federate.getExecutionConfiguration().getLeast_common_time_step();
+			
+			// Create Time object
+			HLAinteger64TimeFactory time_factory = (HLAinteger64TimeFactory) time.getTimeFactory();	
+			
+			//Compute HLTB
+			double time_floor = (Math.floor(GALT.getValue()/LCTS)+1)*LCTS;
+			HLAinteger64Time hltb = time_factory.makeTime((long) time_floor);
+			time.setFederationLogicalTime(hltb);
+			advanceTime(hltb);
 		} 
-		else
-			return false;
-
-		// Wait here for time advance grant.
-		while(!fedamb.isAdvancing()){
-			try {
-				Thread.sleep(10);
-			} catch(Exception e) {
-				e.printStackTrace();
-			}
+		else{
+			logger.error("An error occurred during the advance to current HLA time.");
+			throw new RTIexception("An error occurred during the advance to current HLA time.");
 		}
-		return true;
 	}
 
-	protected void disconnect() throws InvalidResignAction, OwnershipAcquisitionPending, 
+	public void disconnect() throws InvalidResignAction, OwnershipAcquisitionPending, 
 	FederateOwnsAttributes, FederateNotExecutionMember, 
 	NotConnected, CallNotAllowedFromWithinCallback, 
 	RTIinternalError, FederateIsExecutionMember, 
 	SaveInProgress, RestoreInProgress {
 
-		logger.info("Disconnecting the federate from the federation execution.");
 		// Disable time management.
 		if (federate.getConfig().isTimeConstrained())
 			try {
 				rtiamb.disableTimeConstrained();
-				logger.debug("Time constrained disabled.");
+				logger.info("Time constrained disabled.");
 			} catch (TimeConstrainedIsNotEnabled e) {
 				//ignored
 			}
@@ -298,7 +297,7 @@ public class SEEHLAModule {
 		if (federate.getConfig().isTimeRegulating())
 			try {
 				rtiamb.disableTimeRegulation();
-				logger.debug("Time regulating disabled.");
+				logger.info("Time regulating disabled.");
 			} catch (TimeRegulationIsNotEnabled e) {
 				//ignored
 			}
@@ -306,14 +305,14 @@ public class SEEHLAModule {
 		if (federate.getConfig().isAsynchronousDelivery())
 			try {
 				rtiamb.disableAsynchronousDelivery();
-				logger.debug("Asynchronous delivery disabled.");
+				logger.info("Asynchronous delivery disabled.");
 			} catch (AsynchronousDeliveryAlreadyDisabled e) {
 				//ignored
 			}
 
 		// Clean up connectivity to Federation Execution.
 		rtiamb.resignFederationExecution(ResignAction.DELETE_OBJECTS_THEN_DIVEST);
-		logger.debug("Resign from the federation execution");
+		logger.info("Resign from the federation execution");
 		// Disconnect from the RTI.
 		rtiamb.disconnect();
 		logger.info("The federate has been disconnected from the federation execution.");
@@ -346,17 +345,6 @@ public class SEEHLAModule {
 		return this.fedamb;
 	}
 
-	protected void makeTARequest() throws LogicalTimeAlreadyPassed, InvalidLogicalTime, 
-	InTimeAdvancingState, RequestForTimeRegulationPending, 
-	RequestForTimeConstrainedPending, SaveInProgress, RestoreInProgress, 
-	FederateNotExecutionMember, NotConnected, RTIinternalError, IllegalTimeArithmetic {
-
-		fedamb.setAdvancing(false);
-
-		if(rtiamb != null)
-			rtiamb.timeAdvanceRequest(time.nextTimeStep());
-
-	}
 
 	public void subscribeToSubject(Observer observer) {
 		fedamb.addObserverToSubject(observer);
@@ -400,7 +388,7 @@ public class SEEHLAModule {
 
 		if(fedamb.objectClassEntityIsAlreadyPublished(element)){
 			fedamb.updateObjectClassEntityOnRTI(element);
-			logger.info("The Object ' "+element+" ' has been updated on the HLA/RTI platform.");
+			logger.info("The Object '"+element+"' has been updated on the HLA/RTI platform.");
 		}
 		else{
 			logger.warn("Object: "+element+", is not published. The equal() and hascode() methods must be consistent.");
@@ -422,33 +410,30 @@ public class SEEHLAModule {
 
 	}
 
-	@SuppressWarnings("rawtypes")
-	public void subscribeElementObject(Class objectClass) throws InstantiationException, IllegalAccessException, 
+	public void subscribeElementObject(Class<? extends ObjectClass> objectClass) throws InstantiationException, IllegalAccessException, 
 	NameNotFound, FederateNotExecutionMember, NotConnected, 
 	RTIinternalError, InvalidObjectClassHandle, AttributeNotDefined, 
 	ObjectClassNotDefined, SaveInProgress, RestoreInProgress {
 
 		if(!fedamb.objectClassModelIsAlreadySubscribed(objectClass)){
 			fedamb.subscribeObjectClassModel(objectClass);
-			logger.info("The ObjectClass ' "+objectClass+" ' has been subscribed.");
+			logger.info("The ObjectClass '"+objectClass+"' has been subscribed.");
 		}
 		else
-			logger.warn("The ObjectClass ' "+objectClass+" ' is already subscribed.");
+			logger.warn("The ObjectClass '"+objectClass+"' is already subscribed.");
 	}
 
-	@SuppressWarnings("rawtypes")
-	public void subscribeInteractionObject(Class interactionClass) throws RTIinternalError, NameNotFound, FederateNotExecutionMember, NotConnected, InvalidInteractionClassHandle, FederateServiceInvocationsAreBeingReportedViaMOM, InteractionClassNotDefined, SaveInProgress, RestoreInProgress, InstantiationException, IllegalAccessException  {
+	public void subscribeInteractionObject(Class<? extends InteractionClass> interactionClass) throws RTIinternalError, NameNotFound, FederateNotExecutionMember, NotConnected, InvalidInteractionClassHandle, FederateServiceInvocationsAreBeingReportedViaMOM, InteractionClassNotDefined, SaveInProgress, RestoreInProgress, InstantiationException, IllegalAccessException  {
 
 		if(!fedamb.interactionClassModelIsAlreadySubscribed(interactionClass)){
 			fedamb.subscribeInteractionClassModel(interactionClass);
-			logger.info("The InteractionClass ' "+interactionClass+" ' has been subscribed.");
+			logger.info("The InteractionClass '"+interactionClass+"' has been subscribed.");
 		}
 		else
-			logger.warn("The InteractionClass ' "+interactionClass+" ' is already subscribed.");
+			logger.warn("The InteractionClass '"+interactionClass+"' is already subscribed.");
 	}
 
-	@SuppressWarnings("rawtypes")
-	public void unsubscribeObjectClass(Class objectClass) throws ObjectClassNotDefined, SaveInProgress, 
+	public void unsubscribeObjectClass(Class<? extends ObjectClass> objectClass) throws ObjectClassNotDefined, SaveInProgress, 
 	RestoreInProgress, FederateNotExecutionMember, 
 	NotConnected, RTIinternalError, UnsubscribeException {
 
@@ -462,8 +447,7 @@ public class SEEHLAModule {
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
-	public void unsubscribeInteractionObject(Class interactionClass) throws InteractionClassNotDefined, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError, UnsubscribeException {
+	public void unsubscribeInteractionObject(Class<? extends InteractionClass> interactionClass) throws InteractionClassNotDefined, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError, UnsubscribeException {
 
 		if(fedamb.interactionClassModelIsAlreadySubscribed(interactionClass)){
 			fedamb.unsubscribeInteractionClassModel(interactionClass);
@@ -474,44 +458,58 @@ public class SEEHLAModule {
 			throw new UnsubscribeException("Error during unsubscribe the "+interactionClass);
 		}
 	}
-	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void requestAttributeValueUpdate(Class objectClass) throws AttributeNotDefined, ObjectClassNotDefined, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError, UnsubscribeException {
+
+	public void requestAttributeValueUpdate(Class<? extends ObjectClass> objectClass) throws AttributeNotDefined, ObjectClassNotDefined, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError, UnsubscribeException {
 
 		if(fedamb.objectClassModelIsAlreadySubscribed(objectClass)){
-			
-			String classHandleName = ((Class<ObjectClass>)objectClass).getAnnotation(ObjectClass.class).name();
+
+			String classHandleName = objectClass.getAnnotation(ObjectClass.class).name();
 			ObjectClassModel model = fedamb.getObjectManager().getSubscribedMap().get(classHandleName);
+			
 			ObjectClassHandle objectClassHandle = model.getObjectClassHandle();
 			AttributeHandleSet attributeSet = model.getAttributeHandleSet(objectClassHandle);
+			
 			rtiamb.requestAttributeValueUpdate(objectClassHandle, attributeSet, null);
 		}
 		else{	
 			logger.error("Error: "+objectClass+" is not subscribed!");
 			throw new UnsubscribeException("Error: "+objectClass+" is not subscribed!");
 		}
-			
+
 
 	}
 
-	@SuppressWarnings("rawtypes")
-	public void waitForAttributeValueUpdate(Class objectClass) {
+	public void waitForAttributeValueUpdate(Class<? extends ObjectClass> objectClass, int MAX_WAIT_TIME) {
 		try {
-			fedamb.waitForAttributeValueUpdate(objectClass);
+			fedamb.waitForAttributeValueUpdate(objectClass, MAX_WAIT_TIME);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		
+
 	}
 
-	@SuppressWarnings("rawtypes")
-	public void waitForElementDiscovery(Class objectClass) {
+	public void waitForElementDiscovery(Class<? extends ObjectClass> objectClass, int MAX_WAIT_TIME) {
 		try {
-			fedamb.waitForElementDiscovery(objectClass);
+			fedamb.waitForElementDiscovery(objectClass, MAX_WAIT_TIME);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		
 	}
+
+	/* Start SynchronizationPoint Methods */
+	public void achieveSynchronizationPoint(SynchronizationPoint sp) throws SynchronizationPointLabelNotAnnounced, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError {
+		rtiamb.synchronizationPointAchieved(sp.getValue());
+	}	
+
+	public void registerSynchronizationPoint(SynchronizationPoint sp) throws SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError {
+		logger.info("Register SynchronizationPoint: "+ sp);	
+		rtiamb.registerFederationSynchronizationPoint(sp.getValue(), null);
+	}
+
+	public void announceSynchronizationPoint(SynchronizationPoint sp) throws FederateInternalError {
+		logger.info("Announce SynchronizationPoint: "+ sp);	
+		fedamb.announceSynchronizationPoint(sp.getValue(), null);
+	}
+	/* End SynchronizationPoint Methods */
 
 }

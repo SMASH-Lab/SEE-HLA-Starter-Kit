@@ -23,7 +23,6 @@ If not, see http://http://www.gnu.org/licenses/
 *****************************************************************/
 package siso.smackdown.frame;
 
-
 public enum FrameType {
 	
 	SolarSystemBarycentricInertial("SolarSystemBarycentricInertial", null),

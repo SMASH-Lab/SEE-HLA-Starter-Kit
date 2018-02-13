@@ -25,8 +25,8 @@ package skf.exception;
 
 public class FirewallExeption extends RuntimeException {
 
-	private static final long serialVersionUID = 1L;
-	
+	private static final long serialVersionUID = 6127914628984964079L;
+
 	public FirewallExeption(String message) {
 		super(message);
 	}

@@ -45,11 +45,11 @@ import hla.rti1516e.exceptions.SaveInProgress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import skf.exception.UpdateException;
 import skf.model.object.annotations.ObjectClass;
 
-@SuppressWarnings("rawtypes")
 public class ObjectClassModelManager {
 
 	//maps for published element
@@ -58,7 +58,7 @@ public class ObjectClassModelManager {
 
 	//maps for subscribed element
 	private Map<String, ObjectClassModel> subscribed = null;
-	private Map<ObjectClassHandle, Class> mapHandleClassObjectClass = null;
+	private Map<ObjectClassHandle, Class<? extends ObjectClass>> mapHandleClassObjectClass = null;
 	private Map<ObjectInstanceHandle, ObjectClassHandleEntity> objectInstanceHandleObjectClassHandle = null;
 
 	public ObjectClassModelManager() {
@@ -66,7 +66,7 @@ public class ObjectClassModelManager {
 		this.mapInstanceNameObjectClassEntity = new HashMap<String, ObjectClassEntity>();
 
 		this.subscribed = new HashMap<String, ObjectClassModel>();
-		this.mapHandleClassObjectClass = new HashMap<ObjectClassHandle, Class>();
+		this.mapHandleClassObjectClass = new HashMap<ObjectClassHandle, Class<? extends ObjectClass>>();
 		this.objectInstanceHandleObjectClassHandle = new HashMap<ObjectInstanceHandle, ObjectClassHandleEntity>();
 	}
 
@@ -78,43 +78,39 @@ public class ObjectClassModelManager {
 		return this.subscribed;
 	}
 
-	@SuppressWarnings("unchecked")
-	public void subscribe(Class objectClass) throws RTIinternalError, InstantiationException, IllegalAccessException, NameNotFound, 
+	public void subscribe(Class<? extends ObjectClass> objectClass) throws RTIinternalError, InstantiationException, IllegalAccessException, NameNotFound, 
 	FederateNotExecutionMember, NotConnected, InvalidObjectClassHandle, AttributeNotDefined,
 	ObjectClassNotDefined, SaveInProgress, RestoreInProgress {
 
 
 		ObjectClassModel ocm = new ObjectClassModel(objectClass);
+		subscribed.put(objectClass.getAnnotation(ObjectClass.class).name(), ocm);
+		mapHandleClassObjectClass.put(ocm.getObjectClassHandle(), objectClass);
 		ocm.subscribe();
-
-		this.subscribed.put(((Class<ObjectClass>)objectClass).getAnnotation(ObjectClass.class).name(), ocm);
-		this.mapHandleClassObjectClass.put(ocm.getObjectClassHandle(), objectClass);
 	}
 
-	@SuppressWarnings("unchecked")
-	public void unsubscribe(Class objectClass) throws ObjectClassNotDefined, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, 
+	public void unsubscribe(Class<? extends ObjectClass> objectClass) throws ObjectClassNotDefined, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, 
 	NotConnected, RTIinternalError {
 
-		ObjectClassModel ocm = subscribed.get(((Class<ObjectClass>)objectClass).getAnnotation(ObjectClass.class).name());
-		ocm.unsubscribe();
-		
-		this.mapHandleClassObjectClass.remove(ocm.getObjectClassHandle());
+		ObjectClassModel ocm = subscribed.get(objectClass.getAnnotation(ObjectClass.class).name());
+		mapHandleClassObjectClass.remove(ocm.getObjectClassHandle());
 
 		for(Entry<Object, ObjectClassEntity> entry : ocm.getEntities().entrySet())
 			this.objectInstanceHandleObjectClassHandle.remove(entry.getValue().getObjectInstanceHandle());
 
 		this.subscribed.remove(ocm);
-
+		ocm.unsubscribe();
 	}
 
+	@SuppressWarnings("unchecked")
 	public void publish(Object element, String name) throws RTIinternalError, NameNotFound, FederateNotExecutionMember, NotConnected, InvalidObjectClassHandle, InstantiationException, IllegalAccessException, AttributeNotDefined, ObjectClassNotDefined, SaveInProgress, RestoreInProgress, IllegalName, ObjectInstanceNameInUse, ObjectInstanceNameNotReserved, ObjectClassNotPublished, AttributeNotOwned, ObjectInstanceNotKnown, UpdateException {
 
 		ObjectClassModel ocm = published.get(element.getClass().getAnnotation(ObjectClass.class).name());
 
 		if(ocm == null){
-			ocm = new ObjectClassModel(element.getClass());
+			ocm = new ObjectClassModel((Class<? extends ObjectClass>) element.getClass());
+			published.put(element.getClass().getAnnotation(ObjectClass.class).name(), ocm);
 			ocm.publish();
-			this.published.put(element.getClass().getAnnotation(ObjectClass.class).name(), ocm);
 		}
 		
 		ObjectClassEntity entity = null;
@@ -134,6 +130,14 @@ public class ObjectClassModelManager {
 
 	public void addDiscoverObjectInstance(ObjectInstanceHandle instanceHandle, ObjectClassHandle objectClassHandle, String instanceName) {
 		this.objectInstanceHandleObjectClassHandle.put(instanceHandle, new ObjectClassHandleEntity(objectClassHandle, instanceName));
+	}
+	
+	public boolean objectInstanceHasBeenDiscovered(ObjectClassHandle objectClassHandle) {
+		Set<Map.Entry<ObjectInstanceHandle, ObjectClassHandleEntity>> entrySet = objectInstanceHandleObjectClassHandle.entrySet();
+		for(Map.Entry<ObjectInstanceHandle, ObjectClassHandleEntity> entry: entrySet)
+			if(entry.getValue().getObjectClassHandle().equals(objectClassHandle))
+				return true;
+		return false;
 	}
 
 	@SuppressWarnings("unchecked")

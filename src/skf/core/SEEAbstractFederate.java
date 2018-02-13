@@ -34,10 +34,14 @@ import skf.config.Configuration;
 import skf.exception.FirewallExeption;
 import skf.exception.PublishException;
 import skf.exception.SubscribeException;
+import skf.exception.TimeOutException;
 import skf.exception.UnsubscribeException;
 import skf.exception.UpdateException;
 import skf.model.interaction.annotations.InteractionClass;
 import skf.model.object.annotations.ObjectClass;
+import skf.model.object.executionConfiguration.ExecutionConfiguration;
+import skf.synchronizationPoint.SynchronizationPoint;
+import skf.transition.TransitionManager;
 import skf.utility.SystemUtility;
 import hla.rti1516e.exceptions.AsynchronousDeliveryAlreadyEnabled;
 import hla.rti1516e.exceptions.AttributeNotDefined;
@@ -47,9 +51,7 @@ import hla.rti1516e.exceptions.ConnectionFailed;
 import hla.rti1516e.exceptions.CouldNotCreateLogicalTimeFactory;
 import hla.rti1516e.exceptions.CouldNotOpenFDD;
 import hla.rti1516e.exceptions.ErrorReadingFDD;
-import hla.rti1516e.exceptions.FederateIsExecutionMember;
 import hla.rti1516e.exceptions.FederateNotExecutionMember;
-import hla.rti1516e.exceptions.FederateOwnsAttributes;
 import hla.rti1516e.exceptions.FederateServiceInvocationsAreBeingReportedViaMOM;
 import hla.rti1516e.exceptions.FederationExecutionDoesNotExist;
 import hla.rti1516e.exceptions.IllegalName;
@@ -62,7 +64,6 @@ import hla.rti1516e.exceptions.InvalidInteractionClassHandle;
 import hla.rti1516e.exceptions.InvalidLocalSettingsDesignator;
 import hla.rti1516e.exceptions.InvalidLookahead;
 import hla.rti1516e.exceptions.InvalidObjectClassHandle;
-import hla.rti1516e.exceptions.InvalidResignAction;
 import hla.rti1516e.exceptions.NameNotFound;
 import hla.rti1516e.exceptions.NotConnected;
 import hla.rti1516e.exceptions.ObjectClassNotDefined;
@@ -70,12 +71,13 @@ import hla.rti1516e.exceptions.ObjectClassNotPublished;
 import hla.rti1516e.exceptions.ObjectInstanceNameInUse;
 import hla.rti1516e.exceptions.ObjectInstanceNameNotReserved;
 import hla.rti1516e.exceptions.ObjectInstanceNotKnown;
-import hla.rti1516e.exceptions.OwnershipAcquisitionPending;
+import hla.rti1516e.exceptions.RTIexception;
 import hla.rti1516e.exceptions.RTIinternalError;
 import hla.rti1516e.exceptions.RequestForTimeConstrainedPending;
 import hla.rti1516e.exceptions.RequestForTimeRegulationPending;
 import hla.rti1516e.exceptions.RestoreInProgress;
 import hla.rti1516e.exceptions.SaveInProgress;
+import hla.rti1516e.exceptions.SynchronizationPointLabelNotAnnounced;
 import hla.rti1516e.exceptions.TimeConstrainedAlreadyEnabled;
 import hla.rti1516e.exceptions.TimeRegulationAlreadyEnabled;
 import hla.rti1516e.exceptions.UnsupportedCallbackModel;
@@ -86,15 +88,18 @@ public abstract class SEEAbstractFederate implements SEEFederateInterface {
 
 	private SEEHLAModule hlamodule= null;
 	private Configuration config = null;
-	
-	private Thread runningThread = null;
+
 	private ExecutionTask executionTask = null;
+
+	private ExecutionConfiguration exco = null;
 
 	private Time time = null;
 
+	private TransitionManager transitionManager = null;
+
 	public SEEAbstractFederate(SEEAbstractFederateAmbassador seefedamb) {
 		this.hlamodule = new SEEHLAModule(this, seefedamb);
-
+		this.transitionManager = new TransitionManager(this, 100000);
 	}
 
 	@Override
@@ -103,7 +108,7 @@ public abstract class SEEAbstractFederate implements SEEFederateInterface {
 	}
 
 	@Override
-	public void connectOnRTI(String local_settings_designator) throws ConnectionFailed, 
+	public void connectToRTI(String local_settings_designator) throws ConnectionFailed, 
 	InvalidLocalSettingsDesignator, UnsupportedCallbackModel, 
 	CallNotAllowedFromWithinCallback, RTIinternalError {
 
@@ -112,10 +117,11 @@ public abstract class SEEAbstractFederate implements SEEFederateInterface {
 	}
 
 	@Override
-	public void joinIntoFederationExecution() throws CouldNotCreateLogicalTimeFactory, FederationExecutionDoesNotExist, 
-	InconsistentFDD, ErrorReadingFDD, CouldNotOpenFDD, SaveInProgress, 
-	RestoreInProgress, NotConnected, CallNotAllowedFromWithinCallback, 
-	RTIinternalError, MalformedURLException, FederateNotExecutionMember {
+	public void joinFederationExecution() throws CouldNotCreateLogicalTimeFactory, FederationExecutionDoesNotExist, 
+										InconsistentFDD, ErrorReadingFDD, CouldNotOpenFDD, SaveInProgress, 
+										RestoreInProgress, NotConnected, CallNotAllowedFromWithinCallback, 
+										RTIinternalError, MalformedURLException, FederateNotExecutionMember {
+
 
 		// check the status of windows firewall
 		if(System.getProperty("os.name").toUpperCase().contains("WINDOWS") && SystemUtility.windowsFirewallIsEnabled()){
@@ -124,37 +130,13 @@ public abstract class SEEAbstractFederate implements SEEFederateInterface {
 		}
 
 		this.hlamodule.joinIntoFederationExecution();
-		this.time = new Time(config.getSimulationEphoc());
-		this.hlamodule.setTime(time);
 
+		//enable Asynchronous Delivery
 		try {
-			this.hlamodule.configureTimeManager();
-		} catch (InvalidLookahead | InTimeAdvancingState | RequestForTimeRegulationPending
-				| FederateNotExecutionMember | RequestForTimeConstrainedPending  e) {
+			this.hlamodule.configureAsynchronousDelivery();
+		} catch (AsynchronousDeliveryAlreadyEnabled e) {
 			e.printStackTrace();
-		} catch (TimeRegulationAlreadyEnabled | TimeConstrainedAlreadyEnabled | AsynchronousDeliveryAlreadyEnabled e) {
-			// ignored
 		}
-		
-		this.executionTask = new ExecutionTask(hlamodule, this.time);
-
-	}
-
-	@Override
-	public void diconnectFromRTI() throws InvalidResignAction, OwnershipAcquisitionPending, 
-	FederateOwnsAttributes, FederateNotExecutionMember, NotConnected, 
-	RTIinternalError, FederateIsExecutionMember, CallNotAllowedFromWithinCallback, 
-	SaveInProgress, RestoreInProgress {
-
-		 try {
-			this.executionTask.shutdown();
-			this.runningThread.join(3000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}finally{
-			this.hlamodule.disconnect();
-		}
-
 	}
 
 	@Override
@@ -187,10 +169,49 @@ public abstract class SEEAbstractFederate implements SEEFederateInterface {
 		return config;
 	}
 
+	public void setupHLATimeManagement() {
+		try {
+			this.time = new Time(config.getSimulationScenarioTimeEphoc());
+			this.hlamodule.setTime(time);
+			this.hlamodule.configureTimePolicy();
+
+			if(config.getFederateRole().equalsIgnoreCase("late"))
+				this.hlamodule.queryToGALT();
+
+		} catch (InvalidLookahead | InTimeAdvancingState | RequestForTimeRegulationPending
+				| FederateNotExecutionMember | RequestForTimeConstrainedPending  e) {
+			e.printStackTrace();
+		} catch (TimeRegulationAlreadyEnabled | TimeConstrainedAlreadyEnabled | AsynchronousDeliveryAlreadyEnabled e) {
+			e.printStackTrace();
+		} catch (NotConnected | RTIinternalError e) {
+			e.printStackTrace();
+		} catch (SaveInProgress | RestoreInProgress e) {
+			e.printStackTrace();
+		} catch (RTIexception e) {
+			e.printStackTrace();
+		}
+	}
+
 	@Override
 	public void startExecution() {
-		this.runningThread = new Thread(executionTask);
-		this.runningThread.start();
+		executionTask = new ExecutionTask(hlamodule, this.time);
+		transitionManager.setExecutionTask(executionTask);
+		transitionManager.start();
+	}
+
+	@Override
+	public void freezeExecution() {
+		transitionManager.freeze();
+	}
+
+	@Override
+	public void resumeExecution() {
+		transitionManager.resume();
+	}
+
+	@Override
+	public void shudownExecution() {
+		transitionManager.shutdown();
 	}
 
 	@Override
@@ -249,8 +270,7 @@ public abstract class SEEAbstractFederate implements SEEFederateInterface {
 	}
 
 	@Override
-	@SuppressWarnings({ "rawtypes" })
-	public void subscribeElement(Class objectClass) throws InstantiationException, IllegalAccessException, NameNotFound, FederateNotExecutionMember, NotConnected, RTIinternalError, InvalidObjectClassHandle, AttributeNotDefined, ObjectClassNotDefined, SaveInProgress, RestoreInProgress, SubscribeException {
+	public void subscribeElement(Class<? extends ObjectClass> objectClass) throws InstantiationException, IllegalAccessException, NameNotFound, FederateNotExecutionMember, NotConnected, RTIinternalError, InvalidObjectClassHandle, AttributeNotDefined, ObjectClassNotDefined, SaveInProgress, RestoreInProgress, SubscribeException {
 
 		if(objectClassIsValid(objectClass))
 			this.hlamodule.subscribeElementObject(objectClass);
@@ -260,8 +280,7 @@ public abstract class SEEAbstractFederate implements SEEFederateInterface {
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
-	public void requestAttributeValueUpdate(Class objectClass) throws AttributeNotDefined, ObjectClassNotDefined, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError, UnsubscribeException, SubscribeException {
+	public void requestAttributeValueUpdate(Class<? extends ObjectClass> objectClass) throws AttributeNotDefined, ObjectClassNotDefined, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError, UnsubscribeException, SubscribeException {
 
 		if(objectClassIsValid(objectClass))
 			this.hlamodule.requestAttributeValueUpdate(objectClass);
@@ -272,11 +291,10 @@ public abstract class SEEAbstractFederate implements SEEFederateInterface {
 
 	}
 
-	@SuppressWarnings("rawtypes")
-	public void waitForAttributeValueUpdate(Class objectClass) throws SubscribeException {
-		
+	public void waitForAttributeValueUpdate(Class<? extends ObjectClass> objectClass, int MAX_WAIT_TIME) throws SubscribeException {
+
 		if(objectClassIsValid(objectClass))
-			this.hlamodule.waitForAttributeValueUpdate(objectClass);
+			this.hlamodule.waitForAttributeValueUpdate(objectClass, MAX_WAIT_TIME);
 		else{
 			logger.error("ObjectClass: '"+ objectClass +"' is not valid!");
 			throw new SubscribeException("ObjectClass: '"+ objectClass +"' is not valid!");
@@ -285,8 +303,7 @@ public abstract class SEEAbstractFederate implements SEEFederateInterface {
 	}
 
 	@Override
-	@SuppressWarnings({ "rawtypes" })
-	public void subscribeInteraction(Class interactionClass) throws RTIinternalError, InstantiationException, IllegalAccessException, NameNotFound, FederateNotExecutionMember, NotConnected, InvalidInteractionClassHandle, FederateServiceInvocationsAreBeingReportedViaMOM, InteractionClassNotDefined, SaveInProgress, RestoreInProgress, SubscribeException {
+	public void subscribeInteraction(Class<? extends InteractionClass> interactionClass) throws RTIinternalError, InstantiationException, IllegalAccessException, NameNotFound, FederateNotExecutionMember, NotConnected, InvalidInteractionClassHandle, FederateServiceInvocationsAreBeingReportedViaMOM, InteractionClassNotDefined, SaveInProgress, RestoreInProgress, SubscribeException {
 
 		if(interactionClassIsValid(interactionClass))
 			this.hlamodule.subscribeInteractionObject(interactionClass);
@@ -298,8 +315,7 @@ public abstract class SEEAbstractFederate implements SEEFederateInterface {
 	}
 
 	@Override
-	@SuppressWarnings({ "rawtypes" })
-	public void unsubscribeElement(Class objectClass) throws ObjectClassNotDefined, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError, UnsubscribeException {
+	public void unsubscribeElement(Class<? extends ObjectClass> objectClass) throws ObjectClassNotDefined, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError, UnsubscribeException {
 
 		if(objectClassIsValid(objectClass))
 			this.hlamodule.unsubscribeObjectClass(objectClass);
@@ -311,8 +327,7 @@ public abstract class SEEAbstractFederate implements SEEFederateInterface {
 	}
 
 	@Override
-	@SuppressWarnings({ "rawtypes" })
-	public void unsubscribeInteraction(Class interactionClass) throws InteractionClassNotDefined, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError, UnsubscribeException {
+	public void unsubscribeInteraction(Class<? extends InteractionClass> interactionClass) throws InteractionClassNotDefined, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError, UnsubscribeException {
 
 		if(interactionClassIsValid(interactionClass))
 			this.hlamodule.unsubscribeInteractionObject(interactionClass);
@@ -343,15 +358,45 @@ public abstract class SEEAbstractFederate implements SEEFederateInterface {
 		return false;
 	}
 
-	@SuppressWarnings("rawtypes")
-	public void waitForElementDiscovery(Class objectClass) throws UnsubscribeException {
+	public void waitForElementDiscovery(Class<? extends ObjectClass> objectClass, int MAX_WAIT_TIME) throws UnsubscribeException {
 		if(objectClassIsValid(objectClass))
-			this.hlamodule.waitForElementDiscovery(objectClass);
+			this.hlamodule.waitForElementDiscovery(objectClass, MAX_WAIT_TIME);
 		else{
 			logger.error("ObjectClass: '"+ objectClass +"' is not valid!");
 			throw new UnsubscribeException("ObjectClass: '"+ objectClass +"' is not valid!");
 		}
-		
+	}
+
+	public void waitingForSynchronization(SynchronizationPoint sp, int max_wait_time) throws InterruptedException {
+
+		long finishTime = System.currentTimeMillis() + max_wait_time;
+		while(!sp.federationIsSynchronized()){
+			Thread.sleep(10);
+			if(System.currentTimeMillis() >= finishTime)
+				throw new TimeOutException("Timeout waiting for synchronization ["+sp+"]");
+		}
+	}
+
+	public void waitingForAnnouncement(SynchronizationPoint sp, int max_wait_time) throws InterruptedException {
+
+		long finishTime = System.currentTimeMillis() + max_wait_time;
+		while(!sp.isAnnounced()){
+			Thread.sleep(10);
+			if(System.currentTimeMillis() >= finishTime)
+				throw new TimeOutException("Timeout waiting for synchronization ["+sp+"]");
+		}
+	}
+
+	public void achieveSynchronizationPoint(SynchronizationPoint sp) throws SynchronizationPointLabelNotAnnounced, SaveInProgress, RestoreInProgress, FederateNotExecutionMember, NotConnected, RTIinternalError{
+		this.hlamodule.achieveSynchronizationPoint(sp);
+	}
+
+	public synchronized void setExecutionConfiguration(ExecutionConfiguration exco){
+		this.exco = exco;
+	}
+
+	public ExecutionConfiguration getExecutionConfiguration(){
+		return exco;
 	}
 
 }

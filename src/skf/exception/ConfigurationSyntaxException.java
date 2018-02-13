@@ -23,16 +23,10 @@ If not, see http://http://www.gnu.org/licenses/
 *****************************************************************/
 package skf.exception;
 
-/**
-* 
-* @author SMASH-Lab University of Calabria
-* @version 0.1
-* 
-*/
 public class ConfigurationSyntaxException extends RuntimeException {
 
-	private static final long serialVersionUID = 1L;
-	
+	private static final long serialVersionUID = -5557100620165666178L;
+
 	public ConfigurationSyntaxException(String message){
 		super(message);
 	}

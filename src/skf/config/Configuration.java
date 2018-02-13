@@ -27,14 +27,6 @@ import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.joda.time.DateTime;
-
-/**
- * 
- * @author SMASH-Lab University of Calabria
- * @version 0.1
- * 
- */
 public class Configuration implements ConfigurationInterface {
 	
 	
@@ -49,11 +41,13 @@ public class Configuration implements ConfigurationInterface {
 	private String federationName;
 	private String federateName;
 	private String federateType;
+	private String federateRole;
 	private File fomDirectory;
 	private boolean isRealtime;
 	private boolean isTimeConstrained;
 	private boolean isTimeRegulating;
-	private DateTime simulationEphoc;
+	private double simulationScenarioTimeEphoc;
+	private long lookahead;
 	
 	protected Configuration() {}
 
@@ -170,13 +164,34 @@ public class Configuration implements ConfigurationInterface {
 	}
 
 	@Override
-	public DateTime getSimulationEphoc() {
-		return simulationEphoc;
+	public double getSimulationScenarioTimeEphoc() {
+		return simulationScenarioTimeEphoc;
 	}
 
 	@Override
-	public void setSimulationEphoc(DateTime simulationEphoc) {
-		this.simulationEphoc = simulationEphoc;
+	public void setSimulationScenarioTimeEphoc(double simulationScenarioTimeEphoc) {
+		this.simulationScenarioTimeEphoc = simulationScenarioTimeEphoc;
+	}
+
+	@Override
+	public String getFederateRole() {
+		return this.federateRole;
+	}
+
+	@Override
+	public void setFederateRole(String federateRole) {
+		this.federateRole = federateRole;
+	}
+
+	@Override
+	public void setLookahead(long lookahead) {
+		this.lookahead = lookahead;
+		
+	}
+
+	@Override
+	public long getLookahead() {
+		return this.lookahead;
 	}
 	
 }

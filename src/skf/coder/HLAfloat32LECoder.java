@@ -29,8 +29,6 @@ import hla.rti1516e.encoding.EncoderFactory;
 import hla.rti1516e.encoding.HLAfloat32LE;
 import hla.rti1516e.exceptions.RTIinternalError;
 
-
-
 public class HLAfloat32LECoder implements Coder<Float>{
 
 	private HLAfloat32LE coder = null;

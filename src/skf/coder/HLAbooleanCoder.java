@@ -29,8 +29,6 @@ import hla.rti1516e.encoding.EncoderFactory;
 import hla.rti1516e.encoding.HLAboolean;
 import hla.rti1516e.exceptions.RTIinternalError;
 
-
-
 public class HLAbooleanCoder implements Coder<Boolean>{
 
 	private HLAboolean coder = null;
