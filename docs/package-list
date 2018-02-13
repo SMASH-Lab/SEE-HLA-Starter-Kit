@@ -7,7 +7,11 @@ skf.exception
 skf.model
 skf.model.interaction
 skf.model.interaction.annotations
+skf.model.interaction.modeTransitionRequest
 skf.model.object
 skf.model.object.annotations
+skf.model.object.executionConfiguration
 skf.model.parser
+skf.synchronizationPoint
+skf.transition
 skf.utility
