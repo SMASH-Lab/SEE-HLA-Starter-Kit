@@ -1,42 +1,53 @@
 # SEE HLA Starter Kit
 
-The development of a HLA Federation with its Federates is a quite complex task and there are few training resources for developers [1,2, 4]. The SEE HLA Starter Kit aims to ease the development of HLA federates in the context of the Simulation Exploration Experience (SEE) project by providing the following resources:
+[![GitHub Release](https://img.shields.io/github/v/release/SMASH-Lab/SEE-HLA-Starter-Kit)](https://github.com/SMASH-Lab/SEE-HLA-Starter-Kit/releases)
+[![GitHub License](https://img.shields.io/github/license/SMASH-Lab/SEE-HLA-Starter-Kit)](https://github.com/SMASH-Lab/SEE-HLA-Starter-Kit/blob/master/LICENSE)
 
-- a *software framework (the SKF)* for the development in Java of SEE Federates;
-- a *technical documentation* that describes the SKF;
-- a *user guide* to support developers in the use of the SKF;
-- a set of *reference examples* of SEE Federates created by using the SKF;
-- *video-tutorials*, which show how to create both the structure and the behavior of a SEE Federate by using the SKF.
-The SKF is released under the open source policy Lesser GNU Public License (LGPL), which facilitates the development of HLA Federates. Indeed, the SEE HLA Starter Kit allows developers to focus on the specific aspects of their own HLA federates rather than dealing with the common HLA issues such as the management of the simulation time, the connection on the RTI, etc. Moreover, the SEE HLA Starter Kit supports the implementation of SEE Dummy and Tester Federate so to allow a more accurate and effective testing. These features should improve the reliability of SEE Federates and thus reduce the problems arising during the final integration and testing phases of the SEE project [4, 5].
-The SKF is fully implemented in the Java language and is based on the following three principles [3]: 
-	
--  *Interoperability*, SKF is fully compliant with the IEEE 1516-2010 specifications; as a consequence, it is platform-independent and can interoperate with different HLA RTI implementations (e.g. PITCH, VT/MÄK, PoRTIco, CERTI);
--  *Portability and Uniformity*, SKF provides a homogeneous set of APIs that are independent from the underlying HLA RTI and Java version. In this way, developers could decide the HLA RTI and the Java run-time environment at development-time;
--  *Usability*, the complexity of the features provided by the SKF framework are hidden behind an intuitive set of APIs.
+The SEE HLA Starter Kit is a software package that greatly simplifies the task of building HLA federates that need to be compliant with the SpaceFOM standard. Historically, it has been used in the Simulation Exploration Experience (SEE) program to support the development of distributed components of space simulations by student teams across the world. It includes the following:
 
-The SEE HLA Starter Kit is designed, developed, released and managed by the SEI (Systems Engineering and Integration) team, operating in the System Modeling and Simulation Hub (SMASH) Lab of the Department of Informatics, Modeling, Electronics and Systems Engineering (DIMES), University of Calabria (Italy), working in cooperation with NASA JSC (Johnson Space Center), Houston (TX, USA).
+* A **software framework** known as the Starter Kit Framework (SKF) provided as a Java library
+* **Technical documentation** in the form of a dedicated **wiki**, **JavaDocs**, and **sample code**
+* A **starter template project** called *Baseplate* that enables rapid setup and development of federates
 
-## **External links**
+The SKF is intuitively-designed to serve as a simplified abstraction of the HLA Java API. As of the latest release (v2), it is fully compliant with the latest specifications of the HLA standard, **IEEE 1516-2025 (HLA 4)**, and has been successfully tested on **Pitch pRTI**, an industry-leading RTI implementation from **BAE Systems OneArc**.
 
-- Official website [link](https://smash-lab.github.io/SEE-HLA-Starter-Kit/);
-- The SEE HLA Starter Kit all-in-one package [link](https://drive.google.com/drive/folders/0B5VINCL02C8rQ0xZYmhaTjFfRGc?usp=sharing);
-- Documentation (API) [link](https://smash-lab.github.io/SEE-HLA-Starter-Kit/docs/index.html);
-- Technical documentations [link](https://smash-lab.github.io/SEE-HLA-Starter-Kit/document/SEE_HLA_StarterKit_TechnicalReport_1.2.0.pdf);
-- Examples and video-tutorials: How to build a Federate from scratch in 30 minutes! [link](https://drive.google.com/open?id=0B6Txsul1iIJma3pITXE1M2hSOVk);
+The latest release of the framework is available from the [releases](https://github.com/SMASH-Lab/SEE-HLA-Starter-Kit/releases) page. The [wiki](https://github.com/SMASH-Lab/SEE-HLA-Starter-Kit/wiki) contains detailed instructions for building from source and other relevant documentation.
 
-## **Working team**
+The development of the SEE HLA Starter Kit is an international effort that sees contributions from the following institutions:
 
-*  Alfredo Garro, [alfredo.garro@unical.it](mailto:alfredo.garro@unical.it) (coordinator);
-*  Alberto Falcone, [alberto.falcone@dimes.unical.it](mailto:alberto.falcone@dimes.unical.it) (main developer); 
-*  Andrea Tundis, [andrea.tundis@dimes.unical.it](mailto:andrea.tundis@dimes.unical.it) (developer).
+* Systems Engineering and Integration (SEI) team in the System Modeling and Simulation Hub (SMASH) Lab of the Department of Informatics, Modeling, Electronics, and Systems Engineering (DIMES) at the **University of Calabria** (Italy)
+* **NASA Johnson Space Center** (Houston, TX, United States)
+* The Modelling and Simulation Group (MSG) at **Brunel University of London** (United Kingdom)
 
-## **Acknowledgments**
+## Development Team
 
-The SKF working team would like to thank Edwin Z. Crues (NASA JCS) for his precious advice and suggestions in the development of the SEE HLA Starter Kit. A special note of thanks goes also to all the NASA staff involved in the Simulation Exploration Experience (SEE) Project: Priscilla Elfrey, Stephen Paglialonga, Michael Conroy, Dan Dexter, Daniel Oneil, to Björn Möller (PITCH Technologies), and to all the members of SEE teams.
+#### University of Calabria
+*  Alfredo Garro <[alfredo.garro@unical.it](mailto:alfredo.garro@unical.it)> (Coordinator)
+*  Alberto Falcone <[alberto.falcone@dimes.unical.it](mailto:alberto.falcone@dimes.unical.it)> (Main developer) 
+*  Andrea Tundis <[andrea.tundis@dimes.unical.it](mailto:andrea.tundis@dimes.unical.it)> (Developer)
 
-<br>
- 
-## **References**
+#### Brunel University of London
+* Hridyanshu Aatreya <[Hridyanshu.Aatreya2@brunel.ac.uk](mailto:Hridyanshu.Aatreya2@brunel.ac.uk)> (Main developer)
+
+## Resources
+
+* [Official project website](https://smash-lab.github.io/SEE-HLA-Starter-Kit/)
+* [Java API Documentation](https://smash-lab.github.io/SEE-HLA-Starter-Kit/docs/index.html)
+* [Baseplate (Starter Project Template)](https://github.com/SMASH-Lab/SEE-Baseplate)
+* [Manual](https://www.github.com/SMASH-Lab/SEE-HLA-Starter-Kit/wiki)
+* [Tutorials](https://github.com/SMASH-Lab/SEE-Tutorial)
+
+## Acknowledgement
+
+The SKF development team thanks Edwin Z. Crues (NASA JSC) for his valuable input and suggestions that aided the development of the SEE HLA Starter Kit. A big thank you to the NASA staff involved in the Simulation Exploration Experience (SEE) for organizing the program each year to great effect: Priscilla Elfrey, Paige Whittington, Stephen Paglialonga, Michael Conroy, Dan Dexter, Daniel Oneil, and Björn Möller (BAE Systems OneArc). We also thank our users, the members of teams that have participated in SEE over the years as well.
+
+A special note of immense gratitude to Garratt Weblin and the BAE Systems OneArc organization for graciously providing assistance and software licenses, which facilitated the development of the upgraded version 2.0 of the SEE HLA Starter Kit.
+
+## License
+
+The SEE HLA Starter Kit is licensed under the GNU Lesser General Public License (LGPL) v3. Check the [LICENSE](https://github.com/SMASH-Lab/SEE-HLA-Starter-Kit/blob/master/LICENSE) file for further information.
+
+## Publications
 
 1.  Falcone, A., Garro, A., Taylor, S. J. E., Anagnostou, A., Chaudhry, N. R., Salah, O. *Experiences in simplifying distributed simulation: The HLA development kit framework*. Journal of Simulation, 10(37), 1–20. http://doi.org/10.1057/s41273-016-0039-4, (2016).
 
