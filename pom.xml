@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.see</groupId>
+    <artifactId>skf</artifactId>
+    <version>2.0.3-SNAPSHOT</version>
+
+    <name>SEE-HLA-Starter-Kit</name>
+    <url>https://github.com/SMASH-Lab/SEE-HLA-Starter-Kit</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.release>11</maven.compiler.release>
+    </properties>
+    <dependencies>
+        <!-- Local JAR versions of the Pitch pRTI HLA 4 libraries. -->
+        <!-- You have to manually generate these for your local Maven repository if you plan on building the project. -->
+        <!-- This is done because the pRTI libraries are not hosted on any publicly available Maven repositories. -->
+        <!-- See instructions here: https://maven.apache.org/guides/mini/guide-3rd-party-jars-local.html -->
+        <dependency>
+            <groupId>se.pitch</groupId>
+            <artifactId>prti1516-hla4</artifactId>
+            <version>6.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>se.pitch</groupId>
+            <artifactId>prticore</artifactId>
+            <version>6.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>se.pitch</groupId>
+            <artifactId>booster1516</artifactId>
+            <version>6.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.14.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.5.25</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
+            <plugins>
+                <!-- clean lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#clean_Lifecycle -->
+                <plugin>
+                    <artifactId>maven-clean-plugin</artifactId>
+                    <version>3.5.0</version>
+                </plugin>
+                <!-- default lifecycle, jar packaging: see https://maven.apache.org/ref/current/maven-core/default-bindings.html#Plugin_bindings_for_jar_packaging -->
+                <plugin>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>3.4.0</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.14.1</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.5.4</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.5.0</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-install-plugin</artifactId>
+                    <version>3.1.4</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>3.1.4</version>
+                </plugin>
+                <!-- site lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#site_Lifecycle -->
+                <plugin>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <version>3.21.0</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-project-info-reports-plugin</artifactId>
+                    <version>3.9.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>3.12.0</version>
+                    <configuration>
+                        <excludePackageNames>org.see.skf.exceptions: org.see.skf.time: org.see.skf.conf:
+                            org.see.skf.runtime.objects: org.see.skf.runtime.interactions: org.see.skf.runtime</excludePackageNames>
+                        <bottom>
+                            Copyright © 2015–2026 SMASH Lab (University of Calabria) and the Modelling &amp; Simulation Group (Brunel University of London). Licensed under LGPL 3.0.
+                        </bottom>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>logback.xml</exclude>
+                </excludes>
+            </resource>
+        </resources>
+    </build>
+</project>
