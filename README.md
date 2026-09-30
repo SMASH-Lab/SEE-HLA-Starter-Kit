@@ -9,7 +9,7 @@ The SEE HLA Starter Kit is a software package that greatly simplifies the task o
 * **Technical documentation** in the form of a dedicated **wiki**, **JavaDocs**, and **sample code**
 * A **starter template project** called *Baseplate* that enables rapid setup and development of federates
 
-The SKF is intuitively-designed to serve as a simplified abstraction of the HLA Java API. As of the latest release (v2), it is fully compliant with the latest specifications of the HLA standard, **IEEE 1516-2025 (HLA 4)**, and has been successfully tested on **Pitch pRTI**, an industry-leading RTI implementation from **BAE Systems OneArc**.
+The SKF is intuitively-designed to serve as a simplified abstraction of the HLA Java API. As of the latest release (v2.1), it is fully compliant with the latest specifications of the HLA standard, **IEEE 1516-2025 (HLA 4)**, and has been successfully tested on **Pitch pRTI**, an industry-leading RTI implementation from **BAE Systems OneArc**.
 
 The latest release of the framework is available from the [releases](https://github.com/SMASH-Lab/SEE-HLA-Starter-Kit/releases) page. The [wiki](https://github.com/SMASH-Lab/SEE-HLA-Starter-Kit/wiki) contains detailed instructions for building from source and other relevant documentation.
 
