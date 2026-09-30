@@ -1,6 +1,6 @@
 /*****************************************************************
- SEE HLA Starter Kit Framework -  A Java framework for developing
- SRFOM-compliant HLA Federates in the Simulation Exploration
+ SEE HLA Starter Kit Framework -  A Java library that supports
+ the development of HLA Federates in the Simulation Exploration
  Experience (SEE) program.
 
  Copyright (c) 2014, 2026 SMASH Lab - University of Calabria
@@ -27,20 +27,18 @@
 package org.see.skf.core;
 
 /**
- * The listener interface for receiving interaction events. The class that is interested in processing
- * an interaction received callback implements this interface. The object created with that class is then registered
- * with an implementation of the SKFederate interface.
+ * Unchecked exception thrown when the federate encounters a problem while attempting to begin execution.
  *
  * @since 2.1
  */
-public interface InteractionListener {
+public final class FederateStartupException extends RuntimeException {
 
-    /**
-     * Invoked when a receiveInteraction callback is received by the federate.
-     *
-     * @param interaction An object packed with the values of the interaction
-     * @param sourceFederateName Name of the federate that sent the interaction
-     */
-    void received(Object interaction, String sourceFederateName);
+    FederateStartupException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    FederateStartupException(Throwable cause) {
+        super(cause);
+    }
 
 }

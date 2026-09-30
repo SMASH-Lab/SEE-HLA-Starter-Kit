@@ -24,23 +24,38 @@
  If not, see http://http://www.gnu.org/licenses/
  *****************************************************************/
 
-package org.see.skf.core;
+package org.see.skf.encoding;
+
+import hla.rti1516_2025.encoding.DecoderException;
+import hla.rti1516_2025.encoding.EncoderFactory;
+import hla.rti1516_2025.encoding.HLAinteger16LE;
+import org.see.skf.core.ExecutionMode;
 
 /**
- * The listener interface for receiving interaction events. The class that is interested in processing
- * an interaction received callback implements this interface. The object created with that class is then registered
- * with an implementation of the SKFederate interface.
+ * Coder implementation for the ExecutionMode data type.
  *
- * @since 2.1
+ * @see ExecutionMode
+ * @since 1.0
  */
-public interface InteractionListener {
+public final class ExecutionModeCoder implements Coder<ExecutionMode> {
 
-    /**
-     * Invoked when a receiveInteraction callback is received by the federate.
-     *
-     * @param interaction An object packed with the values of the interaction
-     * @param sourceFederateName Name of the federate that sent the interaction
-     */
-    void received(Object interaction, String sourceFederateName);
+    private final HLAinteger16LE executionModeType;
 
+    public ExecutionModeCoder(EncoderFactory encoderFactory) {
+        this.executionModeType = encoderFactory.createHLAinteger16LE();
+    }
+
+    @Override
+    public byte[] encode(ExecutionMode data) {
+        this.executionModeType.setValue(data.getValue());
+        return this.executionModeType.toByteArray();
+    }
+
+    @Override
+    public ExecutionMode decode(byte[] data) throws DecoderException {
+        this.executionModeType.decode(data);
+        short value = this.executionModeType.getValue();
+
+        return ExecutionMode.query(value);
+    }
 }

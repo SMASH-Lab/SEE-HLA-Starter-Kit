@@ -3,7 +3,7 @@
 [![GitHub Release](https://img.shields.io/github/v/release/SMASH-Lab/SEE-HLA-Starter-Kit)](https://github.com/SMASH-Lab/SEE-HLA-Starter-Kit/releases)
 [![GitHub License](https://img.shields.io/github/license/SMASH-Lab/SEE-HLA-Starter-Kit)](https://github.com/SMASH-Lab/SEE-HLA-Starter-Kit/blob/master/LICENSE)
 
-The SEE HLA Starter Kit is a software package that greatly simplifies the task of building HLA federates that need to be compliant with the SpaceFOM standard. Historically, it has been used in the Simulation Exploration Experience (SEE) program to support the development of distributed components of space simulations by student teams across the world. It includes the following:
+The SEE HLA Starter Kit is a software package that greatly simplifies the task of building HLA federates compliant with the SpaceFOM standard. Historically, it has been used in the Simulation Exploration Experience (SEE) program to support the development of distributed components of space simulations by student teams worldwide. It includes the following:
 
 * A **software framework** known as the Starter Kit Framework (SKF) provided as a Java library
 * **Technical documentation** in the form of a dedicated **wiki**, **JavaDocs**, and **sample code**

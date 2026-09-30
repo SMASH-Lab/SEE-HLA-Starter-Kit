@@ -24,23 +24,35 @@
  If not, see http://http://www.gnu.org/licenses/
  *****************************************************************/
 
-package org.see.skf.core;
+package org.see.skf.internal;
 
-/**
- * The listener interface for receiving interaction events. The class that is interested in processing
- * an interaction received callback implements this interface. The object created with that class is then registered
- * with an implementation of the SKFederate interface.
- *
- * @since 2.1
- */
-public interface InteractionListener {
+public enum SRFOMSynchronizationPoint {
+    INITIALIZATION_STARTED ("initialization_started"),
+    INITIALIZATION_COMPLETED ("initialization_completed"),
+    OBJECTS_DISCOVERED ("objects_discovered"),
+    MTR_RUN ("mtr_run"),
+    MTR_FREEZE ("mtr_freeze"),
+    MTR_SHUTDOWN ("mtr_shutdown"),
+    MPI1 ("MPI1"),
+    MPI2 ("MPI2");
 
-    /**
-     * Invoked when a receiveInteraction callback is received by the federate.
-     *
-     * @param interaction An object packed with the values of the interaction
-     * @param sourceFederateName Name of the federate that sent the interaction
-     */
-    void received(Object interaction, String sourceFederateName);
+    private final String label;
 
+    SRFOMSynchronizationPoint(String label) {
+        this.label = label;
+    }
+
+    public String getLabel() {
+        return this.label;
+    }
+
+    public static SRFOMSynchronizationPoint query(String label) {
+        for (SRFOMSynchronizationPoint syncPoint : SRFOMSynchronizationPoint.values()) {
+            if (syncPoint.getLabel().equals(label)) {
+                return syncPoint;
+            }
+        }
+
+        return null;
+    }
 }

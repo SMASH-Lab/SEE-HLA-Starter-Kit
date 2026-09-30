@@ -27,20 +27,36 @@
 package org.see.skf.core;
 
 /**
- * The listener interface for receiving interaction events. The class that is interested in processing
- * an interaction received callback implements this interface. The object created with that class is then registered
+ * The listener interface for receiving remote object instance events. The class that is interested in processing
+ * remote object instance callbacks implements this interface. The object created with that class is then registered
  * with an implementation of the SKFederate interface.
  *
  * @since 2.1
  */
-public interface InteractionListener {
+public interface ObjectInstanceListener {
 
     /**
-     * Invoked when a receiveInteraction callback is received by the federate.
+     * Invoked when a discoverObjectInstance callback is received by the federate.
      *
-     * @param interaction An object packed with the values of the interaction
-     * @param sourceFederateName Name of the federate that sent the interaction
+     * @param producingFederateName Name of the federate that owns this object instance
      */
-    void received(Object interaction, String sourceFederateName);
+    void discovered(String producingFederateName);
+
+    /**
+     * Invoked when the discovered remote object instance's values have become available. Values of the object instance
+     * can then be queried.
+     *
+     * @param instance The object that represents this object instance
+     */
+    void initialized(Object instance);
+
+    /**
+     * Invoked when the removeObjectInstance callback is received. This implies that the remote object instance has been
+     * deleted. It is recommended to avoid using any previous references held to the deleted object instance as the values
+     * will be stale.
+     *
+     * @param producingFederateName Name of the federate that deleted this object instance
+     */
+    void destroyed(String producingFederateName);
 
 }

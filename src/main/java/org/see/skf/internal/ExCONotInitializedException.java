@@ -24,23 +24,22 @@
  If not, see http://http://www.gnu.org/licenses/
  *****************************************************************/
 
-package org.see.skf.core;
+package org.see.skf.internal;
 
 /**
- * The listener interface for receiving interaction events. The class that is interested in processing
- * an interaction received callback implements this interface. The object created with that class is then registered
- * with an implementation of the SKFederate interface.
+ * Unchecked exception thrown when a federate cannot proceed beyond initialization because the ExCO object instance
+ * was not found in time.
  *
- * @since 2.1
+ * @since 2.0
  */
-public interface InteractionListener {
+public final class ExCONotInitializedException extends RuntimeException {
 
     /**
-     * Invoked when a receiveInteraction callback is received by the federate.
-     *
-     * @param interaction An object packed with the values of the interaction
-     * @param sourceFederateName Name of the federate that sent the interaction
+     * Constructs an instance of this class.
+     * @param message the detail message
      */
-    void received(Object interaction, String sourceFederateName);
+    public ExCONotInitializedException(String message) {
+        super(message);
+    }
 
 }

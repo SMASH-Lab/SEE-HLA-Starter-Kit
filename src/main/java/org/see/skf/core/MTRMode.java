@@ -27,20 +27,35 @@
 package org.see.skf.core;
 
 /**
- * The listener interface for receiving interaction events. The class that is interested in processing
- * an interaction received callback implements this interface. The object created with that class is then registered
- * with an implementation of the SKFederate interface.
+ * Mode Transition Request (MTR) values. This enumeration is used to request a specific mode transition. However, not all
+ * mode transition requests are accepted for any given Run Mode. Refer to the mode transition validation table in the
+ * Space Reference FOM documentation.
  *
- * @since 2.1
+ * @since 1.0
  */
-public interface InteractionListener {
+public enum MTRMode {
+    MTR_UNDESIGNATED((short) -1),
+    MTR_GOTO_RUN((short) 2),
+    MTR_GOTO_FREEZE((short) 3),
+    MTR_GOTO_SHUTDOWN((short) 4);
 
-    /**
-     * Invoked when a receiveInteraction callback is received by the federate.
-     *
-     * @param interaction An object packed with the values of the interaction
-     * @param sourceFederateName Name of the federate that sent the interaction
-     */
-    void received(Object interaction, String sourceFederateName);
+    private final short value;
 
+    MTRMode(short value) {
+        this.value = value;
+    }
+
+    public static MTRMode query(short value) {
+        for (MTRMode  mode : MTRMode.values()) {
+            if (mode.value == value) {
+                return mode;
+            }
+        }
+
+        return null;
+    }
+
+    public short getValue() {
+        return this.value;
+    }
 }

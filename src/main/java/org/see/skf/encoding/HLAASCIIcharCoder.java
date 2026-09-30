@@ -24,23 +24,35 @@
  If not, see http://http://www.gnu.org/licenses/
  *****************************************************************/
 
-package org.see.skf.core;
+package org.see.skf.encoding;
+
+import hla.rti1516_2025.encoding.DecoderException;
+import hla.rti1516_2025.encoding.EncoderFactory;
+import hla.rti1516_2025.encoding.HLAASCIIchar;
 
 /**
- * The listener interface for receiving interaction events. The class that is interested in processing
- * an interaction received callback implements this interface. The object created with that class is then registered
- * with an implementation of the SKFederate interface.
+ * Coder implementation for the HLAASCIIcharCoder data type.
  *
- * @since 2.1
+ * @see HLAASCIIchar
+ * @since 1.0
  */
-public interface InteractionListener {
+public final class HLAASCIIcharCoder implements Coder<Byte> {
 
-    /**
-     * Invoked when a receiveInteraction callback is received by the federate.
-     *
-     * @param interaction An object packed with the values of the interaction
-     * @param sourceFederateName Name of the federate that sent the interaction
-     */
-    void received(Object interaction, String sourceFederateName);
+    private final HLAASCIIchar charType;
 
+    public HLAASCIIcharCoder(EncoderFactory encoderFactory) {
+        this.charType = encoderFactory.createHLAASCIIchar();
+    }
+
+    @Override
+    public Byte decode(byte[] buffer) throws DecoderException {
+        this.charType.decode(buffer);
+        return this.charType.getValue();
+    }
+
+    @Override
+    public byte[] encode(Byte element) {
+        this.charType.setValue(element);
+        return this.charType.toByteArray();
+    }
 }

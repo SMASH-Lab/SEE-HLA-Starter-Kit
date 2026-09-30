@@ -24,23 +24,27 @@
  If not, see http://http://www.gnu.org/licenses/
  *****************************************************************/
 
-package org.see.skf.core;
+package org.see.skf.internal;
 
-/**
- * The listener interface for receiving interaction events. The class that is interested in processing
- * an interaction received callback implements this interface. The object created with that class is then registered
- * with an implementation of the SKFederate interface.
- *
- * @since 2.1
- */
-public interface InteractionListener {
+import org.see.skf.core.ExecutionMode;
+import org.see.skf.internal.executive.ExecutiveStateManager;
 
-    /**
-     * Invoked when a receiveInteraction callback is received by the federate.
-     *
-     * @param interaction An object packed with the values of the interaction
-     * @param sourceFederateName Name of the federate that sent the interaction
-     */
-    void received(Object interaction, String sourceFederateName);
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
+public final class ExCOUpdateListener implements PropertyChangeListener {
+
+    private final ExecutiveStateManager executiveStateManager;
+
+    public ExCOUpdateListener(ExecutiveStateManager executiveStateManager) {
+        this.executiveStateManager = executiveStateManager;
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        if (evt.getPropertyName().equals("next_execution_mode")) {
+            ExecutionMode nextExecutionMode = (ExecutionMode) evt.getNewValue();
+            this.executiveStateManager.changeExecutionMode(nextExecutionMode);
+        }
+    }
 }

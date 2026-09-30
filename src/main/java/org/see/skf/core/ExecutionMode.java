@@ -27,20 +27,36 @@
 package org.see.skf.core;
 
 /**
- * The listener interface for receiving interaction events. The class that is interested in processing
- * an interaction received callback implements this interface. The object created with that class is then registered
- * with an implementation of the SKFederate interface.
+ * Defines the current running state of the federation execution in terms of a finite set of states expressed in the
+ * ExecutionMode enumeration.
  *
- * @since 2.1
+ * @since 1.0
  */
-public interface InteractionListener {
+public enum ExecutionMode {
+    EXEC_MODE_UNDESIGNATED((short) -1),
+    EXEC_MODE_UNINITIALIZED((short) 0),
+    EXEC_MODE_INITIALIZING((short) 1),
+    EXEC_MODE_RUNNING((short) 2),
+    EXEC_MODE_FREEZE((short) 3),
+    EXEC_MODE_SHUTDOWN((short) 4);
 
-    /**
-     * Invoked when a receiveInteraction callback is received by the federate.
-     *
-     * @param interaction An object packed with the values of the interaction
-     * @param sourceFederateName Name of the federate that sent the interaction
-     */
-    void received(Object interaction, String sourceFederateName);
+    private final short value;
 
+    ExecutionMode(short value) {
+        this.value = value;
+    }
+
+    public static ExecutionMode query(short value) {
+        for (ExecutionMode mode : values()) {
+            if (mode.value == value) {
+                return mode;
+            }
+        }
+
+        return null;
+    }
+
+    public short getValue() {
+        return value;
+    }
 }

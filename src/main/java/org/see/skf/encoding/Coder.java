@@ -24,23 +24,21 @@
  If not, see http://http://www.gnu.org/licenses/
  *****************************************************************/
 
-package org.see.skf.core;
+package org.see.skf.encoding;
+
+import hla.rti1516_2025.encoding.DecoderException;
 
 /**
- * The listener interface for receiving interaction events. The class that is interested in processing
- * an interaction received callback implements this interface. The object created with that class is then registered
- * with an implementation of the SKFederate interface.
+ * An object that represents how an arbitrary data type should be converted to an equivalent HLA data type.
  *
- * @since 2.1
+ * <p>
+ * Concrete implementations of this interface must have a constructor that takes in <code>hla.rti1516_2025.encoding.EncoderFactory</code>
+ * as the only argument and specifies exactly how the data is encoded/decoded in its method implementations.
+ * </p>
+ *
+ * @since 1.0
  */
-public interface InteractionListener {
-
-    /**
-     * Invoked when a receiveInteraction callback is received by the federate.
-     *
-     * @param interaction An object packed with the values of the interaction
-     * @param sourceFederateName Name of the federate that sent the interaction
-     */
-    void received(Object interaction, String sourceFederateName);
-
+public interface Coder<T> {
+    byte[] encode(T data);
+    T decode (byte[] data) throws DecoderException;
 }

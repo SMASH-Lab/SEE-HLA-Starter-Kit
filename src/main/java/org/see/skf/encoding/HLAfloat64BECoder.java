@@ -24,23 +24,35 @@
  If not, see http://http://www.gnu.org/licenses/
  *****************************************************************/
 
-package org.see.skf.core;
+package org.see.skf.encoding;
+
+import hla.rti1516_2025.encoding.DecoderException;
+import hla.rti1516_2025.encoding.EncoderFactory;
+import hla.rti1516_2025.encoding.HLAfloat64BE;
 
 /**
- * The listener interface for receiving interaction events. The class that is interested in processing
- * an interaction received callback implements this interface. The object created with that class is then registered
- * with an implementation of the SKFederate interface.
+ * Coder implementation for the HLAfloat64BE data type.
  *
- * @since 2.1
+ * @see HLAfloat64BE
+ * @since 1.0
  */
-public interface InteractionListener {
+public final class HLAfloat64BECoder implements Coder<Double> {
 
-    /**
-     * Invoked when a receiveInteraction callback is received by the federate.
-     *
-     * @param interaction An object packed with the values of the interaction
-     * @param sourceFederateName Name of the federate that sent the interaction
-     */
-    void received(Object interaction, String sourceFederateName);
+    private final HLAfloat64BE float64Type;
 
+    public HLAfloat64BECoder(EncoderFactory encoderFactory) {
+        this.float64Type = encoderFactory.createHLAfloat64BE();
+    }
+
+    @Override
+    public Double decode(byte[] buffer) throws DecoderException {
+        this.float64Type.decode(buffer);
+        return this.float64Type.getValue();
+    }
+
+    @Override
+    public byte[] encode(Double element) {
+        this.float64Type.setValue(element);
+        return this.float64Type.toByteArray();
+    }
 }

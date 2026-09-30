@@ -24,23 +24,23 @@
  If not, see http://http://www.gnu.org/licenses/
  *****************************************************************/
 
-package org.see.skf.core;
+package org.see.skf.core.annotations;
+
+import java.lang.annotation.*;
 
 /**
- * The listener interface for receiving interaction events. The class that is interested in processing
- * an interaction received callback implements this interface. The object created with that class is then registered
- * with an implementation of the SKFederate interface.
+ * Designates a class as an HLA interaction class.
  *
- * @since 2.1
+ * @see Parameter
+ * @see ObjectClass
+ * @since 1.0
  */
-public interface InteractionListener {
-
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+@Inherited
+public @interface InteractionClass {
     /**
-     * Invoked when a receiveInteraction callback is received by the federate.
-     *
-     * @param interaction An object packed with the values of the interaction
-     * @param sourceFederateName Name of the federate that sent the interaction
+     * The name of the interaction class in the Federation Object Model (FOM).
      */
-    void received(Object interaction, String sourceFederateName);
-
+    String name();
 }

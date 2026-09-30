@@ -24,23 +24,33 @@
  If not, see http://http://www.gnu.org/licenses/
  *****************************************************************/
 
-package org.see.skf.core;
+package org.see.skf.core.annotations;
+
+import org.see.skf.encoding.Coder;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * The listener interface for receiving interaction events. The class that is interested in processing
- * an interaction received callback implements this interface. The object created with that class is then registered
- * with an implementation of the SKFederate interface.
+ * Designates a class field as an attribute of an HLA object class.
  *
- * @since 2.1
+ * @see ObjectClass
+ * @since 1.0
  */
-public interface InteractionListener {
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface Attribute {
+    /**
+     * The name of the object class attribute in the Federation Object Model (FOM).
+     */
+    String name();
 
     /**
-     * Invoked when a receiveInteraction callback is received by the federate.
+     * The coder used to encode/decode this field.
      *
-     * @param interaction An object packed with the values of the interaction
-     * @param sourceFederateName Name of the federate that sent the interaction
+     * @see Coder
      */
-    void received(Object interaction, String sourceFederateName);
-
+    Class<? extends Coder<?>> coder();
 }

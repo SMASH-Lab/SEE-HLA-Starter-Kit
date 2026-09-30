@@ -24,23 +24,30 @@
  If not, see http://http://www.gnu.org/licenses/
  *****************************************************************/
 
-package org.see.skf.core;
+package org.see.skf.internal.runtime;
 
-/**
- * The listener interface for receiving interaction events. The class that is interested in processing
- * an interaction received callback implements this interface. The object created with that class is then registered
- * with an implementation of the SKFederate interface.
- *
- * @since 2.1
- */
-public interface InteractionListener {
+import hla.rti1516_2025.encoding.DecoderException;
+import hla.rti1516_2025.encoding.EncoderFactory;
+import hla.rti1516_2025.encoding.HLAboolean;
+import org.see.skf.encoding.Coder;
 
-    /**
-     * Invoked when a receiveInteraction callback is received by the federate.
-     *
-     * @param interaction An object packed with the values of the interaction
-     * @param sourceFederateName Name of the federate that sent the interaction
-     */
-    void received(Object interaction, String sourceFederateName);
+public class TestHLAbooleanCoderImpl implements Coder<Boolean> {
 
+    private final HLAboolean booleanType;
+
+    public TestHLAbooleanCoderImpl(EncoderFactory encoderFactory) {
+        this.booleanType = encoderFactory.createHLAboolean();
+    }
+
+    @Override
+    public byte[] encode(Boolean data) {
+        this.booleanType.setValue(data);
+        return this.booleanType.toByteArray();
+    }
+
+    @Override
+    public Boolean decode(byte[] bytes) throws DecoderException {
+        this.booleanType.decode(bytes);
+        return this.booleanType.getValue();
+    }
 }

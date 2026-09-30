@@ -26,21 +26,30 @@
 
 package org.see.skf.core;
 
+import java.util.Set;
+
 /**
- * The listener interface for receiving interaction events. The class that is interested in processing
- * an interaction received callback implements this interface. The object created with that class is then registered
+ * The listener interface for receiving attribute ownership transfer events. The class that is interested in processing
+ * an attribute ownership transfer callback implements this interface. The object created with that class is then registered
  * with an implementation of the SKFederate interface.
  *
  * @since 2.1
  */
-public interface InteractionListener {
+public interface AttributeOwnershipListener {
 
     /**
-     * Invoked when a receiveInteraction callback is received by the federate.
+     * Invoked when a requestAttributeOwnershipRelease callback is received by the federate.
      *
-     * @param interaction An object packed with the values of the interaction
-     * @param sourceFederateName Name of the federate that sent the interaction
+     * @param candidateAttributeNames Names of the attributes whose release is requested
      */
-    void received(Object interaction, String sourceFederateName);
+    void releaseRequested(Set<String> candidateAttributeNames);
+
+    /**
+     * Invoked when an attributeOwnershipAcquisitionNotification or attributeOwnershipUnavailable callback is received by the federate.
+     *
+     * @param outcome true if attributeOwnershipAcquisitionNotification was received (implying success) and false if attributeOwnershipUnavailable was received.
+     * @param securedAttributeNames Names of the attributes concerned with this event
+     */
+    void secured(boolean outcome, Set<String> securedAttributeNames);
 
 }

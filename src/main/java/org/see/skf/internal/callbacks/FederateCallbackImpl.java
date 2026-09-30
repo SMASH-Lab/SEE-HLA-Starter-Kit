@@ -24,23 +24,38 @@
  If not, see http://http://www.gnu.org/licenses/
  *****************************************************************/
 
-package org.see.skf.core;
+package org.see.skf.internal.callbacks;
 
-/**
- * The listener interface for receiving interaction events. The class that is interested in processing
- * an interaction received callback implements this interface. The object created with that class is then registered
- * with an implementation of the SKFederate interface.
- *
- * @since 2.1
- */
-public interface InteractionListener {
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.FutureTask;
 
-    /**
-     * Invoked when a receiveInteraction callback is received by the federate.
-     *
-     * @param interaction An object packed with the values of the interaction
-     * @param sourceFederateName Name of the federate that sent the interaction
-     */
-    void received(Object interaction, String sourceFederateName);
+final class FederateCallbackImpl<T> implements FederateCallback<T> {
 
+    private T outcome;
+    private final FutureTask<T> task;
+
+    private final CountDownLatch latch;
+
+    FederateCallbackImpl() {
+        this.task = createTask();
+        this.latch = new CountDownLatch(1);
+    }
+
+    private FutureTask<T> createTask() {
+        return new FutureTask<>(() -> {
+            this.latch.await();
+            return this.outcome;
+        });
+    }
+
+    @Override
+    public synchronized void complete(T outcome) {
+        this.outcome = outcome;
+        this.latch.countDown();
+    }
+
+    @Override
+    public FutureTask<T> getTask() {
+        return this.task;
+    }
 }

@@ -26,21 +26,33 @@
 
 package org.see.skf.core;
 
+import org.see.skf.core.annotations.InteractionClass;
+import org.see.skf.core.annotations.Parameter;
+import org.see.skf.encoding.MTRModeCoder;
+
 /**
- * The listener interface for receiving interaction events. The class that is interested in processing
- * an interaction received callback implements this interface. The object created with that class is then registered
- * with an implementation of the SKFederate interface.
+ * The ModeTransitionRequest (MTR) interaction is used by participating federates, that are not the Master Federate, to
+ * request a federation execution mode transition. An MTR can be sent at anytime during the initialization or execution
+ * but only certain MTR requests are valid at certain times. An instance of this class can be used to request a federation-wide mode transition.
  *
- * @since 2.1
+ * @since 1.5
  */
-public interface InteractionListener {
+@InteractionClass(name = "HLAinteractionRoot.ModeTransitionRequest")
+public final class ModeTransitionRequest {
 
-    /**
-     * Invoked when a receiveInteraction callback is received by the federate.
-     *
-     * @param interaction An object packed with the values of the interaction
-     * @param sourceFederateName Name of the federate that sent the interaction
-     */
-    void received(Object interaction, String sourceFederateName);
+    @Parameter(name = "execution_mode", coder = MTRModeCoder.class)
+    private MTRMode executionMode;
 
+    public ModeTransitionRequest() {
+        /* Zero-arg constructor as required by the framework and the JavaBeans standard. */
+        this.executionMode = MTRMode.MTR_UNDESIGNATED;
+    }
+
+    public MTRMode getExecutionMode() {
+        return this.executionMode;
+    }
+
+    public void setExecutionMode(MTRMode executionMode) {
+        this.executionMode = executionMode;
+    }
 }

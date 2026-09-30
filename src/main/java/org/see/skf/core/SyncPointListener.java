@@ -27,20 +27,23 @@
 package org.see.skf.core;
 
 /**
- * The listener interface for receiving interaction events. The class that is interested in processing
- * an interaction received callback implements this interface. The object created with that class is then registered
+ * The listener interface for receiving synchronization point events. The class that is interested in processing
+ * an attribute ownership transfer callback implements this interface. The object created with that class is then registered
  * with an implementation of the SKFederate interface.
  *
  * @since 2.1
  */
-public interface InteractionListener {
+public interface SyncPointListener {
 
     /**
-     * Invoked when a receiveInteraction callback is received by the federate.
-     *
-     * @param interaction An object packed with the values of the interaction
-     * @param sourceFederateName Name of the federate that sent the interaction
+     * Invoked when a announceSynchronizationPoint callback is received by the federate, implying that participating federates
+     * must achieve this sync point.
      */
-    void received(Object interaction, String sourceFederateName);
+    void announced();
 
+    /**
+     * Invoked when a federationSynchronized callback is received by the federate. All federates have achieved the announced
+     * synchronization point.
+     */
+    void federationSynchronized();
 }

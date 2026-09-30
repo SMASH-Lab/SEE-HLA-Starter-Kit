@@ -24,23 +24,35 @@
  If not, see http://http://www.gnu.org/licenses/
  *****************************************************************/
 
-package org.see.skf.core;
+package org.see.skf.encoding;
+
+import hla.rti1516_2025.encoding.DecoderException;
+import hla.rti1516_2025.encoding.EncoderFactory;
+import hla.rti1516_2025.encoding.HLAinteger32BE;
 
 /**
- * The listener interface for receiving interaction events. The class that is interested in processing
- * an interaction received callback implements this interface. The object created with that class is then registered
- * with an implementation of the SKFederate interface.
+ * Coder implementation for the HLAinteger32BE data type.
  *
- * @since 2.1
+ * @see HLAinteger32BE
+ * @since 1.0
  */
-public interface InteractionListener {
+public final class HLAinteger32BECoder implements Coder<Integer> {
 
-    /**
-     * Invoked when a receiveInteraction callback is received by the federate.
-     *
-     * @param interaction An object packed with the values of the interaction
-     * @param sourceFederateName Name of the federate that sent the interaction
-     */
-    void received(Object interaction, String sourceFederateName);
+    private final HLAinteger32BE int32type;
 
+    public HLAinteger32BECoder(EncoderFactory encoderFactory) {
+        this.int32type = encoderFactory.createHLAinteger32BE();
+    }
+
+    @Override
+    public Integer decode(byte[] buffer) throws DecoderException {
+        this.int32type.decode(buffer);
+        return int32type.getValue();
+    }
+
+    @Override
+    public byte[] encode(Integer element) {
+        this.int32type.setValue(element);
+        return int32type.toByteArray();
+    }
 }
