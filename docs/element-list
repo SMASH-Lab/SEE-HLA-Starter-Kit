@@ -1,5 +1,3 @@
-org.see.skf.annotations
 org.see.skf.core
-org.see.skf.util.encoding
-org.see.skf.util.listeners
-org.see.skf.util.models
+org.see.skf.core.annotations
+org.see.skf.encoding
